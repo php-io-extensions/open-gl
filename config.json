@@ -1,0 +1,30 @@
+{
+    "namespace": "opengl",
+    "name": "opengl",
+    "description": "PHP-Controllable OpenGL Rendering Extension",
+    "author": "Project Saturn Studios, LLC",
+    "version": "0.7.0",
+    "extra-cflags": "-I/opt/homebrew/include -I/usr/local/include -DGL_SILENCE_DEPRECATION",
+    "extra-libs": "-L/opt/homebrew/lib -L/usr/local/lib",
+    "stubs": {
+        "path": "ide/%version%/%namespace%/",
+        "stubs-run-after-generate": false
+    },
+    "warnings": {
+        "unused-variable": true,
+        "unused-variable-external": true,
+        "possible-wrong-parameter": true,
+        "possible-wrong-parameter-undefined": true,
+        "nonexistent-function": true,
+        "nonexistent-class": true
+    },
+    "optimizations": {
+        "call-gatherer-pass": false,
+        "check-invalid-reads": false,
+        "constant-folding": false,
+        "local-context-pass": false,
+        "static-constant-class-folding": false,
+        "static-type-inference": false,
+        "static-type-inference-second-pass": false
+    }
+}
