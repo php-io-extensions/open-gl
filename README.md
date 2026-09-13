@@ -1,137 +1,159 @@
-# php-open-gl
+# php-io-extensions/opengl
 
-[![PHP](https://img.shields.io/badge/php-%E2%89%A5%208.2-777bb4?logo=php&logoColor=white)](https://www.php.net)
-[![Built with Zephir](https://img.shields.io/badge/built%20with-Zephir-ff6a00)](https://zephir-lang.com/)
-[![Platform](https://img.shields.io/badge/platform-linux%20%7C%20macOS-lightgrey)](#requirements)
-[![License: MIT](https://img.shields.io/badge/license-MIT-green)](#license)
+OpenGL core **1.0 through 4.1**, bound 1:1 into PHP. Plus the two OS-native
+context APIs, so you can get a context without a window: **EGL** on Linux,
+**CGL** on macOS.
 
-> PHP extension for the OpenGL **rendering API** — built with [Zephir](https://zephir-lang.com/), installable via [PHP PIE](https://github.com/php/pie).
+```php
+use OpenGL\Bridge\Bridge;
+use OpenGL\GL\GL10\GL10;
+use OpenGL\GL\GL15\GL15;
 
-`opengl` exposes `gl*` entry points to PHP 8.2+ under `Opengl\GL\…`. It is the
-draw half of ScrapyardIO's Windowed Visual Output stack. Window/context creation
-stays in peer packages (`php-io-extensions/glfw`, `php-io-extensions/sdl3`).
+Bridge::load();
+// ... make a context current: EGL or CGL, see examples/proof_headless.php ...
 
-OpenGL `#define` tokens live in a companion microscrap wrapper, not in this
-extension.
+echo GL10::glGetString(0x1F02), "\n";   // GL_VERSION
 
----
-
-## Requirements
-
-| Component            | Minimum version | Notes                                                                  |
-| -------------------- | --------------- | ---------------------------------------------------------------------- |
-| PHP                  | 8.2             | ZTS and NTS builds both supported.                                     |
-| OpenGL               | system          | macOS `OpenGL.framework` or Linux Mesa (`libgl1-mesa-dev`).             |
-| OS                   | Linux / macOS   | x86_64 + aarch64. Windows is not currently supported.                  |
-| Compiler             | C11 toolchain   | `gcc`, `clang`, or Apple Clang.                                        |
-| `php-dev` / `phpize` | matches PHP     | Required for any build path that is not PIE.                           |
-
----
-
-## Installation
-
-### Via PHP PIE (recommended)
-
-```bash
-pie install php-io-extensions/open-gl
+$buf = Bridge::alloc(4);
+GL15::glGenBuffers(1, $buf);
+$vbo = unpack('l', Bridge::read($buf, 0, 4))[1];
+Bridge::free($buf);
 ```
 
-### Platform installers
+(Every GL call needs a current context; without one they all warn and return
+0, which is the same refusal a call your context is too old for gets. The
+extension will not create a context behind your back — that is a decision,
+and decisions are yours.)
 
-**macOS** (Homebrew / system frameworks):
+That is the whole idea: a C tutorial reads as PHP with `GL15::` in front of
+it. `glGenBuffers` is `glGenBuffers` — not `genBuffers`, not
+`Buffer::generate`, not an array of ints. **581 static methods, 17 classes,
+nothing renamed and nothing invented** — and the two prototypes that cannot
+be bound are visible `@reserved` lines rather than absences.
+
+## What is here
+
+| | classes | methods |
+|---|---|---:|
+| `OpenGL\GL\GL10\GL10` .. `OpenGL\GL\GL41\GL41` — one per header version block | 14 | 479 |
+| `OpenGL\EGL\EGL` — EGL 1.0 .. 1.5 core | 1 | 44 |
+| `OpenGL\CGL\CGL` — macOS context API | 1 | 50 (+2 reserved) |
+| `OpenGL\Bridge\Bridge` — the only glue | 1 | 8 |
+
+A function lives on the class for the version it **first appeared in**.
+`glClear` is `GL10::glClear` whether you are on a 3.1 context or a 4.1 one.
+
+Blocks 4.2 .. 4.6 (178 prototypes) are a later wave. Extension blocks
+(`GL_ARB_*`, `GL_NV_*`, …) are out of scope. Constants live in
+**jovian/ogx**, never here.
+
+## One `.so`, two ceilings
+
+No GL entry point is called by name; every one is resolved at runtime
+through `dlsym` / `eglGetProcAddress`. The same binary serves a Mac at GL 4.1
+and a Raspberry Pi 5 at GL 3.1 — and tells you honestly which one you are on:
+
+```php
+Bridge::isAvailable('glProgramUniform1f');   // true on the Mac, false on the Pi
+GL41::glProgramUniform1f(...);               // on the Pi: E_WARNING, returns 0
+```
+
+That answer is not "did the symbol resolve" — on Mesa, GL 4.6 names resolve
+fine on a 3.1 context. It is "can *this context* make this call", and it has
+two halves, both re-checked on every call: **there is a context current**, and
+**it is at least as new as the version block the function came from**. With no
+context current every GL name is refused the same way, which is the first
+thing to check when something that obviously exists starts warning.
+
+`Bridge::procAddress()` is the deliberate exception: it reports what the
+*driver* has, ungated, for diagnostics. A non-zero answer from it is not
+permission to call anything.
+
+The platform's GL runtime is a **requirement**, not a fallback. On macOS
+OpenGL.framework is a load-time dependency of the module; on Linux the module
+loads without `libGL.so.1`/`libEGL.so.1` and then `Bridge::load()` returns
+`false` and nothing works. `build-linux.sh` checks for both before building.
+
+## Pointers
+
+Every pointer that is not a string crosses as **raw pointer bits in an
+`int`**, `0 = NULL`. `Bridge::alloc/write/read` give you the bytes;
+`pack()`/`unpack()` give you the types.
+
+```php
+$buf = Bridge::alloc(4);
+GL10::glGetIntegerv(0x0D33, $buf);           // GL_MAX_TEXTURE_SIZE, glcorearb.h:175
+$max = unpack('l', Bridge::read($buf, 0, 4))[1];
+Bridge::free($buf);
+```
+
+This is on purpose. Marshalling `GLint *params` as a PHP array would mean the
+extension holding a table of how many values every `pname` returns — which is
+exactly the OpenGL opinion a 1:1 layer must not hold. It lives one layer up,
+in jovian/ogx. `Bridge::read`/`write` are bounds-checked; the pointer you
+hand to *GL* is your own responsibility.
+
+The one exception, because it is the one place the extension allocates what
+GL walks: `const GLchar *const *` (`glShaderSource` and three friends) takes a
+PHP array of strings, and the binding refuses the call if your `count` exceeds
+the array.
+
+## Proof
+
+`examples/proof_headless.php` runs on both boxes with no window, no display
+server and no seat. It creates a context, compiles a GLSL shader pair from
+source, renders a triangle into a 64×64 RGBA8 texture through an FBO, reads
+the pixels back into a Bridge buffer and byte-checks them.
+
+```
+                            Mac                     Pi 5
+context                     CGL                     EGL 1.5 surfaceless
+GL_VERSION                  4.1 Metal - 89.4        3.1 Mesa 26.2.0
+GL_RENDERER                 Apple M1 Pro            V3D 7.1.7.0
+GLSL                        4.10                    1.40
+centre pixel                255,128,64,255          255,128,64,255
+corner pixel                0,0,0,255               0,0,0,255
+glProgramUniform1f          available               warns, returns 0
+```
+
+`PHP_OS_FAMILY` appears in exactly one function of that script — choosing EGL
+or CGL is the caller's decision, and the extension has no opinion about it.
+
+## Install
+
+**macOS** (needs Zephir: `composer global require phalcon/zephir` and the
+`zephir_parser` extension):
 
 ```bash
+export HERD_PHP_84_INI_SCAN_DIR="$(zsh -ic 'echo $HERD_PHP_84_INI_SCAN_DIR')"
 bash install-macos.sh
-# or with Laravel Herd on PATH:
-bash install-macos-herd.sh
+php examples/proof_headless.php
 ```
 
-**Debian Trixie / Raspberry Pi OS**:
+**Debian / Ubuntu:**
 
 ```bash
-bash install-debian-trixie.sh
+bash build-linux.sh
+php examples/proof_headless.php
 ```
 
-**JetPack 6 / Ubuntu 22.04** (Jetson):
+`ext/` ships generated, so the Linux build needs only `phpize`/`make` — but
+it refuses a committed `ext/` whose `.gen-stamp` no longer matches `src/`.
 
-```bash
-bash install-jetpack6.sh
-```
+From the Mac, `bash scripts/pi-verify.sh` does the whole Pi round trip:
+push, build, reflect, prove.
 
-### Manual build with Zephir (maintainers)
+## Layering
 
-```bash
-bash scripts/prepare-ext.sh
-cd ext && phpize && ./configure --enable-opengl && make
-php -n -d extension="$(pwd)/modules/opengl.so" --ri opengl
-```
+**ext-opengl = OpenGL + unavoidable glue. jovian/ogx = PHP projection and
+constants. venusian = composition. surface = abstraction.**
 
-`scripts/prepare-ext.sh` regenerates C sources, patches portable `ext/config.m4`
-(Darwin `-framework OpenGL` / Linux `-lGL`), applies Zephir 0.19 REGISTER fixups
-when needed, and strips phpize junk so absolute host paths never ship.
+No opinions live here. No window is opened here. No constant is defined here.
 
----
+## Documentation
 
-## Quick start
+The knowledge bundle is [`.okf/`](.okf/) — start at
+[`.okf/index.md`](.okf/index.md). [`AGENTS.md`](AGENTS.md) is the short form
+for agents working on this package.
 
-```php
-<?php
-use Opengl\GL\GL;
-
-// Requires a current OpenGL context from glfw/sdl3 first.
-GL::glClearColor(0.1, 0.2, 0.3, 1.0);
-GL::glClear(0x00004000); // GL_COLOR_BUFFER_BIT — prefer microscrap enums
-```
-
-### Named objects (`fd`)
-
-Buffers, textures, shaders, and programs are Zephir objects. The opaque GLuint
-name is stored on public `fd` (0 = none), matching the posi/ftdi handle style:
-
-```php
-$buffer = GL::glGenBuffer();
-GL::glBindBuffer(0x8892, $buffer); // GL_ARRAY_BUFFER
-// $buffer->fd is the GLuint name
-```
-
-### Examples
-
-```bash
-# Visual window + on-screen Quit menu (needs glfw + opengl)
-OPENGL_PROOF_SECONDS=5 php examples/proof_menu.php
-```
-
----
-
-## API surface
-
-| Class | Namespace | Role |
-| ----- | --------- | ---- |
-| `GL` | `Opengl\GL` | Static `gl*` passthrough (clear, viewport, fixed-function draw, buffer/texture/shader/program helpers) |
-| `GlBuffer` | `Opengl\GL` | Buffer object DTO (`fd`, `target`, `size`, `usage`) |
-| `GlTexture` | `Opengl\GL` | Texture object DTO (`fd`, `target`, `width`, `height`, `format`) |
-| `GlShader` | `Opengl\GL` | Shader object DTO (`fd`, `type`, `compiled`) |
-| `GlProgram` | `Opengl\GL` | Program object DTO (`fd`, `linked`) |
-
-### Binding conventions
-
-- Opaque GLuint names → object `fd` (`int`) or plain `int` where noted
-- Static methods mirror C names (`glClear`, `glGenBuffer`, …)
-- Hard failures from context-less calls surface as OpenGL errors via `glGetError`
-- No FFI
-
-### What this package is not
-
-- Not a windowing library (use `glfw` / `sdl3`)
-- Not an extension loader (GLEW/glad — future slice)
-- Not Metal / Vulkan / CUDA
-
----
-
-## Version
-
-**0.7.0** — ecosystem docs line `0.7.x`. IDE stubs under `ide/0.7.0/`.
-
-## License
-
-MIT — see [LICENSE](LICENSE).
+MIT. Project Saturn Studios, LLC.

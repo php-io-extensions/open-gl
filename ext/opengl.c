@@ -8,6 +8,9 @@
 #include <php.h>
 
 #include "php_ext.h"
+
+/* PHPGL module teardown */
+#include "src/phpgl-bridge.h"
 #include "opengl.h"
 
 #include <ext/standard/info.h>
@@ -23,11 +26,23 @@
 
 
 
-zend_class_entry *opengl_gl_gl_ce;
-zend_class_entry *opengl_gl_glbuffer_ce;
-zend_class_entry *opengl_gl_glprogram_ce;
-zend_class_entry *opengl_gl_glshader_ce;
-zend_class_entry *opengl_gl_gltexture_ce;
+zend_class_entry *opengl_bridge_bridge_ce;
+zend_class_entry *opengl_cgl_cgl_ce;
+zend_class_entry *opengl_egl_egl_ce;
+zend_class_entry *opengl_gl_gl10_gl10_ce;
+zend_class_entry *opengl_gl_gl11_gl11_ce;
+zend_class_entry *opengl_gl_gl12_gl12_ce;
+zend_class_entry *opengl_gl_gl13_gl13_ce;
+zend_class_entry *opengl_gl_gl14_gl14_ce;
+zend_class_entry *opengl_gl_gl15_gl15_ce;
+zend_class_entry *opengl_gl_gl20_gl20_ce;
+zend_class_entry *opengl_gl_gl21_gl21_ce;
+zend_class_entry *opengl_gl_gl30_gl30_ce;
+zend_class_entry *opengl_gl_gl31_gl31_ce;
+zend_class_entry *opengl_gl_gl32_gl32_ce;
+zend_class_entry *opengl_gl_gl33_gl33_ce;
+zend_class_entry *opengl_gl_gl40_gl40_ce;
+zend_class_entry *opengl_gl_gl41_gl41_ce;
 
 ZEND_DECLARE_MODULE_GLOBALS(opengl)
 
@@ -39,24 +54,37 @@ static PHP_MINIT_FUNCTION(opengl)
 {
 	REGISTER_INI_ENTRIES();
 	zephir_module_init();
-	ZEPHIR_INIT(Opengl_GL_GL);
-	ZEPHIR_INIT(Opengl_GL_GlBuffer);
-	ZEPHIR_INIT(Opengl_GL_GlProgram);
-	ZEPHIR_INIT(Opengl_GL_GlShader);
-	ZEPHIR_INIT(Opengl_GL_GlTexture);
+	ZEPHIR_INIT(OpenGL_Bridge_Bridge);
+	ZEPHIR_INIT(OpenGL_CGL_CGL);
+	ZEPHIR_INIT(OpenGL_EGL_EGL);
+	ZEPHIR_INIT(OpenGL_GL_GL10_GL10);
+	ZEPHIR_INIT(OpenGL_GL_GL11_GL11);
+	ZEPHIR_INIT(OpenGL_GL_GL12_GL12);
+	ZEPHIR_INIT(OpenGL_GL_GL13_GL13);
+	ZEPHIR_INIT(OpenGL_GL_GL14_GL14);
+	ZEPHIR_INIT(OpenGL_GL_GL15_GL15);
+	ZEPHIR_INIT(OpenGL_GL_GL20_GL20);
+	ZEPHIR_INIT(OpenGL_GL_GL21_GL21);
+	ZEPHIR_INIT(OpenGL_GL_GL30_GL30);
+	ZEPHIR_INIT(OpenGL_GL_GL31_GL31);
+	ZEPHIR_INIT(OpenGL_GL_GL32_GL32);
+	ZEPHIR_INIT(OpenGL_GL_GL33_GL33);
+	ZEPHIR_INIT(OpenGL_GL_GL40_GL40);
+	ZEPHIR_INIT(OpenGL_GL_GL41_GL41);
 	
 	return SUCCESS;
 }
 
-#ifndef ZEPHIR_RELEASE
 static PHP_MSHUTDOWN_FUNCTION(opengl)
 {
+	/* PHPGL module teardown: free the byte buffers the caller did not,
+	 * destroy the registry, and close the loader's dlopen handles. */
+	phpgl_bridge_shutdown();
 	
 	zephir_deinitialize_memory();
 	UNREGISTER_INI_ENTRIES();
 	return SUCCESS;
 }
-#endif
 
 /**
  * Initialize globals on each request or each thread started
@@ -157,11 +185,7 @@ zend_module_entry opengl_module_entry = {
 	PHP_OPENGL_EXTNAME,
 	php_opengl_functions,
 	PHP_MINIT(opengl),
-#ifndef ZEPHIR_RELEASE
 	PHP_MSHUTDOWN(opengl),
-#else
-	NULL,
-#endif
 	PHP_RINIT(opengl),
 	PHP_RSHUTDOWN(opengl),
 	PHP_MINFO(opengl),

@@ -1,11 +1,36 @@
 {
     "namespace": "opengl",
     "name": "opengl",
-    "description": "PHP-Controllable OpenGL Rendering Extension",
+    "extension-name": "opengl",
+    "description": "OpenGL core 1.0-4.1 (plus EGL and CGL) bound 1:1 into PHP",
     "author": "Project Saturn Studios, LLC",
-    "version": "0.7.0",
-    "extra-cflags": "-I/opt/homebrew/include -I/usr/local/include -DGL_SILENCE_DEPRECATION",
-    "extra-libs": "-L/opt/homebrew/lib -L/usr/local/lib",
+    "version": "0.8.0",
+    "extra-cflags": "-Wno-error=incompatible-pointer-types -Wno-deprecated-declarations",
+    "extra-libs": "",
+    "extra-sources": [
+        "src/phpgl-support.c",
+        "src/phpgl-bridge.c",
+        "src/phpgl-registry.c",
+        "src/gl-10.c",
+        "src/gl-11.c",
+        "src/gl-12.c",
+        "src/gl-13.c",
+        "src/gl-14.c",
+        "src/gl-15.c",
+        "src/gl-20.c",
+        "src/gl-21.c",
+        "src/gl-30.c",
+        "src/gl-31.c",
+        "src/gl-32.c",
+        "src/gl-33.c",
+        "src/gl-40.c",
+        "src/gl-41.c",
+        "src/egl.c",
+        "src/cgl.c"
+    ],
+    "optimizer-dirs": [
+        "optimizers"
+    ],
     "stubs": {
         "path": "ide/%version%/%namespace%/",
         "stubs-run-after-generate": false
@@ -19,12 +44,12 @@
         "nonexistent-class": true
     },
     "optimizations": {
-        "call-gatherer-pass": false,
-        "check-invalid-reads": false,
-        "constant-folding": false,
-        "local-context-pass": false,
-        "static-constant-class-folding": false,
-        "static-type-inference": false,
-        "static-type-inference-second-pass": false
+        "call-gatherer-pass": true,
+        "check-invalid-reads": true,
+        "constant-folding": true,
+        "local-context-pass": true,
+        "static-constant-class-folding": true,
+        "static-type-inference": true,
+        "static-type-inference-second-pass": true
     }
 }

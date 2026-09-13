@@ -1,9 +1,9 @@
 {
-    "name": "php-io-extensions/open-gl",
+    "name": "php-io-extensions/opengl",
     "type": "php-ext",
-    "description": "PHP-Controllable OpenGL Rendering Extension",
+    "description": "OpenGL core 1.0-4.1 (plus EGL and CGL) bound 1:1 into PHP (Zephir extension, macOS + Linux)",
     "license": "MIT",
-    "version": "0.7.0",
+    "version": "0.8.0",
     "authors": [
         {
             "name": "Project Saturn Studios, LLC",
@@ -11,7 +11,7 @@
         }
     ],
     "require": {
-        "php": ">=8.2"
+        "php": ">=8.4"
     },
     "php-ext": {
         "extension-name": "opengl",
@@ -19,13 +19,11 @@
         "build-path": "ext",
         "support-zts": true,
         "support-nts": true,
-        "os-families-exclude": [
-            "windows"
-        ],
+        "os-families": ["darwin", "linux"],
         "configure-options": [
             {
                 "name": "enable-opengl",
-                "description": "Enable the opengl extension",
+                "description": "Enable the opengl extension (macOS + Linux)",
                 "needs-value": false
             }
         ]

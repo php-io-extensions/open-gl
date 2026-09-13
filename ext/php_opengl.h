@@ -11,11 +11,11 @@
 #include "kernel/globals.h"
 
 #define PHP_OPENGL_NAME        "opengl"
-#define PHP_OPENGL_VERSION     "0.7.0"
+#define PHP_OPENGL_VERSION     "0.8.0"
 #define PHP_OPENGL_EXTNAME     "opengl"
 #define PHP_OPENGL_AUTHOR      "Project Saturn Studios, LLC"
 #define PHP_OPENGL_ZEPVERSION  "0.19.0-$Id$"
-#define PHP_OPENGL_DESCRIPTION "PHP-Controllable OpenGL Rendering Extension"
+#define PHP_OPENGL_DESCRIPTION "OpenGL core 1.0-4.1 (plus EGL and CGL) bound 1:1 into PHP"
 
 
 
