@@ -1,0 +1,53 @@
+{
+    "name": "php-io-extensions/opengl",
+    "type": "php-ext",
+    "description": "1:1 PHP bindings of the OpenGL 4.1 core / OpenGL ES 3 calls both dialects share, with CGL on macOS and EGL on Linux",
+    "keywords": [
+        "opengl",
+        "gles",
+        "egl",
+        "cgl",
+        "gpu",
+        "php-ext"
+    ],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Project Saturn Studios, LLC",
+            "email": "info@projectsaturnstudios.com"
+        }
+    ],
+    "require": {
+        "php": ">=8.4"
+    },
+    "require-dev": {
+        "pestphp/pest": "^4.0"
+    },
+    "config": {
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.10.x-dev"
+        }
+    },
+    "php-ext": {
+        "extension-name": "opengl",
+        "priority": 30,
+        "support-zts": true,
+        "support-nts": true,
+        "os-families": [
+            "linux",
+            "darwin"
+        ],
+        "configure-options": [
+            {
+                "name": "enable-opengl",
+                "description": "Enable the opengl extension",
+                "needs-value": false
+            }
+        ]
+    }
+}
