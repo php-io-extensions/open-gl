@@ -165,6 +165,18 @@ const EGL_HEIGHT = UNKNOWN;
 
 /**
  * @var int
+ * @cvalue EGL_DRAW
+ */
+const EGL_DRAW = UNKNOWN;
+
+/**
+ * @var int
+ * @cvalue EGL_READ
+ */
+const EGL_READ = UNKNOWN;
+
+/**
+ * @var int
  * @cvalue EGL_CONTEXT_MAJOR_VERSION
  */
 const EGL_CONTEXT_MAJOR_VERSION = UNKNOWN;
@@ -226,6 +238,11 @@ function eglDestroySurface(EGLDisplay $display, EGLSurface $surface): bool {}
 function eglMakeCurrent(EGLDisplay $display, ?EGLSurface $draw, ?EGLSurface $read, ?EGLContext $ctx): bool {}
 
 function eglGetCurrentContext(): ?EGLContext {}
+
+function eglGetCurrentDisplay(): ?EGLDisplay {}
+
+/** $readdraw is EGL_DRAW or EGL_READ. */
+function eglGetCurrentSurface(int $readdraw): ?EGLSurface {}
 
 function eglSwapBuffers(EGLDisplay $display, EGLSurface $surface): bool {}
 

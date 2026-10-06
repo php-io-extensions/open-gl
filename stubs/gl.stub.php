@@ -461,6 +461,30 @@ const GL_PACK_ROW_LENGTH = UNKNOWN;
 
 /**
  * @var int
+ * @cvalue GL_UNPACK_SKIP_ROWS
+ */
+const GL_UNPACK_SKIP_ROWS = UNKNOWN;
+
+/**
+ * @var int
+ * @cvalue GL_UNPACK_SKIP_PIXELS
+ */
+const GL_UNPACK_SKIP_PIXELS = UNKNOWN;
+
+/**
+ * @var int
+ * @cvalue GL_PACK_SKIP_ROWS
+ */
+const GL_PACK_SKIP_ROWS = UNKNOWN;
+
+/**
+ * @var int
+ * @cvalue GL_PACK_SKIP_PIXELS
+ */
+const GL_PACK_SKIP_PIXELS = UNKNOWN;
+
+/**
+ * @var int
  * @cvalue GL_FRAMEBUFFER
  */
 const GL_FRAMEBUFFER = UNKNOWN;
@@ -524,6 +548,18 @@ const GL_STENCIL_BUFFER_BIT = UNKNOWN;
  * @cvalue GL_PIXEL_PACK_BUFFER_BINDING
  */
 const GL_PIXEL_PACK_BUFFER_BINDING = UNKNOWN;
+
+/**
+ * @var int
+ * @cvalue GL_DRAW_FRAMEBUFFER_BINDING
+ */
+const GL_DRAW_FRAMEBUFFER_BINDING = UNKNOWN;
+
+/**
+ * @var int
+ * @cvalue GL_READ_FRAMEBUFFER_BINDING
+ */
+const GL_READ_FRAMEBUFFER_BINDING = UNKNOWN;
 
 function glGenTextures(int $n): array {}
 

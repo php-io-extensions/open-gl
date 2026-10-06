@@ -41,7 +41,7 @@ Constants: `GL_ARRAY_BUFFER`, `GL_ELEMENT_ARRAY_BUFFER`, `GL_PIXEL_PACK_BUFFER`,
 
 `glGenTextures`, `glBindTexture`, `glTexImage2D`, `glTexSubImage2D`, `glTexParameteri`, `glActiveTexture`, `glDeleteTextures`, `glPixelStorei`, `glGenFramebuffers`, `glBindFramebuffer`, `glFramebufferTexture2D`, `glCheckFramebufferStatus`, `glDeleteFramebuffers`, `glGenRenderbuffers`, `glBindRenderbuffer`, `glRenderbufferStorage`, `glRenderbufferStorageMultisample`, `glFramebufferRenderbuffer`, `glDeleteRenderbuffers`, `glBlitFramebuffer`, `glDrawBuffers`, `glReadBuffer`, `glReadPixels`.
 
-Constants: `GL_TEXTURE_2D`, `GL_TEXTURE0`, `GL_RGBA`, `GL_RGBA8`, `GL_RGB`, `GL_RED`, `GL_R8`, `GL_DEPTH24_STENCIL8`, `GL_TEXTURE_MIN_FILTER`, `GL_TEXTURE_MAG_FILTER`, `GL_TEXTURE_WRAP_S`, `GL_TEXTURE_WRAP_T`, `GL_NEAREST`, `GL_LINEAR`, `GL_CLAMP_TO_EDGE`, `GL_UNPACK_ALIGNMENT`, `GL_UNPACK_ROW_LENGTH`, `GL_PACK_ALIGNMENT`, `GL_PACK_ROW_LENGTH`, `GL_FRAMEBUFFER`, `GL_READ_FRAMEBUFFER`, `GL_DRAW_FRAMEBUFFER`, `GL_RENDERBUFFER`, `GL_COLOR_ATTACHMENT0`, `GL_DEPTH_STENCIL_ATTACHMENT`, `GL_FRAMEBUFFER_COMPLETE`, `GL_COLOR_BUFFER_BIT`, `GL_DEPTH_BUFFER_BIT`, `GL_STENCIL_BUFFER_BIT`, `GL_PIXEL_PACK_BUFFER_BINDING`.
+Constants: `GL_TEXTURE_2D`, `GL_TEXTURE0`, `GL_RGBA`, `GL_RGBA8`, `GL_RGB`, `GL_RED`, `GL_R8`, `GL_DEPTH24_STENCIL8`, `GL_TEXTURE_MIN_FILTER`, `GL_TEXTURE_MAG_FILTER`, `GL_TEXTURE_WRAP_S`, `GL_TEXTURE_WRAP_T`, `GL_NEAREST`, `GL_LINEAR`, `GL_CLAMP_TO_EDGE`, `GL_UNPACK_ALIGNMENT`, `GL_UNPACK_ROW_LENGTH`, `GL_PACK_ALIGNMENT`, `GL_PACK_ROW_LENGTH`, `GL_UNPACK_SKIP_ROWS`, `GL_UNPACK_SKIP_PIXELS`, `GL_PACK_SKIP_ROWS`, `GL_PACK_SKIP_PIXELS`, `GL_FRAMEBUFFER`, `GL_READ_FRAMEBUFFER`, `GL_DRAW_FRAMEBUFFER`, `GL_RENDERBUFFER`, `GL_COLOR_ATTACHMENT0`, `GL_DEPTH_STENCIL_ATTACHMENT`, `GL_FRAMEBUFFER_COMPLETE`, `GL_COLOR_BUFFER_BIT`, `GL_DEPTH_BUFFER_BIT`, `GL_STENCIL_BUFFER_BIT`, `GL_PIXEL_PACK_BUFFER_BINDING`, `GL_DRAW_FRAMEBUFFER_BINDING`, `GL_READ_FRAMEBUFFER_BINDING`.
 
 # Draws
 
@@ -61,8 +61,8 @@ Constants: `kCGLPFAOpenGLProfile`, `kCGLOGLPVersion_3_2_Core`, `kCGLOGLPVersion_
 
 Handles: `EGLDisplay`, `EGLConfig`, `EGLContext`, `EGLSurface`.
 
-`eglGetDisplay`, `eglGetPlatformDisplay`, `eglInitialize`, `eglTerminate`, `eglBindAPI`, `eglChooseConfig`, `eglCreateContext`, `eglDestroyContext`, `eglCreatePbufferSurface`, `eglDestroySurface`, `eglMakeCurrent`, `eglGetCurrentContext`, `eglSwapBuffers`, `eglGetError`, `eglQueryString`.
+`eglGetDisplay`, `eglGetPlatformDisplay`, `eglInitialize`, `eglTerminate`, `eglBindAPI`, `eglChooseConfig`, `eglCreateContext`, `eglDestroyContext`, `eglCreatePbufferSurface`, `eglDestroySurface`, `eglMakeCurrent`, `eglGetCurrentContext`, `eglGetCurrentDisplay`, `eglGetCurrentSurface`, `eglSwapBuffers`, `eglGetError`, `eglQueryString`.
 
-Constants: `EGL_PLATFORM_SURFACELESS_MESA`, `EGL_DEFAULT_DISPLAY` (literal 0), `EGL_NONE`, `EGL_SUCCESS`, `EGL_OPENGL_ES_API`, `EGL_RENDERABLE_TYPE`, `EGL_OPENGL_ES3_BIT`, `EGL_SURFACE_TYPE`, `EGL_PBUFFER_BIT`, `EGL_RED_SIZE`, `EGL_GREEN_SIZE`, `EGL_BLUE_SIZE`, `EGL_ALPHA_SIZE`, `EGL_DEPTH_SIZE`, `EGL_STENCIL_SIZE`, `EGL_WIDTH`, `EGL_HEIGHT`, `EGL_CONTEXT_MAJOR_VERSION`, `EGL_CONTEXT_MINOR_VERSION`, `EGL_VENDOR`, `EGL_VERSION`, `EGL_EXTENSIONS`, `EGL_CLIENT_APIS`.
+Constants: `EGL_PLATFORM_SURFACELESS_MESA`, `EGL_DEFAULT_DISPLAY` (literal 0), `EGL_NONE`, `EGL_SUCCESS`, `EGL_OPENGL_ES_API`, `EGL_RENDERABLE_TYPE`, `EGL_OPENGL_ES3_BIT`, `EGL_SURFACE_TYPE`, `EGL_PBUFFER_BIT`, `EGL_RED_SIZE`, `EGL_GREEN_SIZE`, `EGL_BLUE_SIZE`, `EGL_ALPHA_SIZE`, `EGL_DEPTH_SIZE`, `EGL_STENCIL_SIZE`, `EGL_WIDTH`, `EGL_HEIGHT`, `EGL_DRAW`, `EGL_READ`, `EGL_CONTEXT_MAJOR_VERSION`, `EGL_CONTEXT_MINOR_VERSION`, `EGL_VENDOR`, `EGL_VERSION`, `EGL_EXTENSIONS`, `EGL_CLIENT_APIS`.
 
 [^stub]: stubs/gl.stub.php

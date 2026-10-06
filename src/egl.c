@@ -401,6 +401,23 @@ ZEND_FUNCTION(eglGetCurrentContext)
 	opengl_box(return_value, eglGetCurrentContext(), opengl_ce_EGLContext);
 }
 
+ZEND_FUNCTION(eglGetCurrentDisplay)
+{
+	ZEND_PARSE_PARAMETERS_NONE();
+	opengl_box(return_value, eglGetCurrentDisplay(), opengl_ce_EGLDisplay);
+}
+
+ZEND_FUNCTION(eglGetCurrentSurface)
+{
+	zend_long readdraw;
+
+	ZEND_PARSE_PARAMETERS_START(1, 1)
+		Z_PARAM_LONG(readdraw)
+	ZEND_PARSE_PARAMETERS_END();
+
+	opengl_box(return_value, eglGetCurrentSurface((EGLint) readdraw), opengl_ce_EGLSurface);
+}
+
 ZEND_FUNCTION(eglSwapBuffers)
 {
 	zval *display_zv, *surface_zv;

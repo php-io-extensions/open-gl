@@ -1,5 +1,5 @@
 /* This is a generated file, edit the .stub.php file instead.
- * Stub hash: e5b8e6a9dd5fdd0cb50e83f5cda0df437b778ce0 */
+ * Stub hash: 22b8fc7a43ccd8b585dcc60200ac4d72ec9ec073 */
 
 ZEND_BEGIN_ARG_WITH_RETURN_OBJ_INFO_EX(arginfo_eglGetDisplay, 0, 1, EGLDisplay, 1)
 	ZEND_ARG_TYPE_INFO(0, display_id, IS_LONG, 1)
@@ -66,6 +66,13 @@ ZEND_END_ARG_INFO()
 ZEND_BEGIN_ARG_WITH_RETURN_OBJ_INFO_EX(arginfo_eglGetCurrentContext, 0, 0, EGLContext, 1)
 ZEND_END_ARG_INFO()
 
+ZEND_BEGIN_ARG_WITH_RETURN_OBJ_INFO_EX(arginfo_eglGetCurrentDisplay, 0, 0, EGLDisplay, 1)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_WITH_RETURN_OBJ_INFO_EX(arginfo_eglGetCurrentSurface, 0, 1, EGLSurface, 1)
+	ZEND_ARG_TYPE_INFO(0, readdraw, IS_LONG, 0)
+ZEND_END_ARG_INFO()
+
 #define arginfo_eglSwapBuffers arginfo_eglDestroySurface
 
 ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_eglGetError, 0, 0, IS_LONG, 0)
@@ -115,6 +122,8 @@ ZEND_FUNCTION(eglCreatePbufferSurface);
 ZEND_FUNCTION(eglDestroySurface);
 ZEND_FUNCTION(eglMakeCurrent);
 ZEND_FUNCTION(eglGetCurrentContext);
+ZEND_FUNCTION(eglGetCurrentDisplay);
+ZEND_FUNCTION(eglGetCurrentSurface);
 ZEND_FUNCTION(eglSwapBuffers);
 ZEND_FUNCTION(eglGetError);
 ZEND_FUNCTION(eglQueryString);
@@ -144,6 +153,8 @@ static const zend_function_entry ext_functions[] = {
 	ZEND_FE(eglDestroySurface, arginfo_eglDestroySurface)
 	ZEND_FE(eglMakeCurrent, arginfo_eglMakeCurrent)
 	ZEND_FE(eglGetCurrentContext, arginfo_eglGetCurrentContext)
+	ZEND_FE(eglGetCurrentDisplay, arginfo_eglGetCurrentDisplay)
+	ZEND_FE(eglGetCurrentSurface, arginfo_eglGetCurrentSurface)
 	ZEND_FE(eglSwapBuffers, arginfo_eglSwapBuffers)
 	ZEND_FE(eglGetError, arginfo_eglGetError)
 	ZEND_FE(eglQueryString, arginfo_eglQueryString)
@@ -197,6 +208,8 @@ static void register_EGL_symbols(int module_number)
 	REGISTER_LONG_CONSTANT("EGL_STENCIL_SIZE", EGL_STENCIL_SIZE, CONST_PERSISTENT);
 	REGISTER_LONG_CONSTANT("EGL_WIDTH", EGL_WIDTH, CONST_PERSISTENT);
 	REGISTER_LONG_CONSTANT("EGL_HEIGHT", EGL_HEIGHT, CONST_PERSISTENT);
+	REGISTER_LONG_CONSTANT("EGL_DRAW", EGL_DRAW, CONST_PERSISTENT);
+	REGISTER_LONG_CONSTANT("EGL_READ", EGL_READ, CONST_PERSISTENT);
 	REGISTER_LONG_CONSTANT("EGL_CONTEXT_MAJOR_VERSION", EGL_CONTEXT_MAJOR_VERSION, CONST_PERSISTENT);
 	REGISTER_LONG_CONSTANT("EGL_CONTEXT_MINOR_VERSION", EGL_CONTEXT_MINOR_VERSION, CONST_PERSISTENT);
 	REGISTER_LONG_CONSTANT("EGL_VENDOR", EGL_VENDOR, CONST_PERSISTENT);

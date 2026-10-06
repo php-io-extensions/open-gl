@@ -48,7 +48,7 @@ Bindings are 1:1. There are no defaults and no composites. The only translations
 
 A string given as pixel or buffer data must hold what GL will read. For `glTexImage2D` and `glTexSubImage2D` that size comes from the width, height, format, type, and the current `GL_UNPACK_ALIGNMENT` and `GL_UNPACK_ROW_LENGTH`. For `glBufferData` and `glBufferSubData` it is the size. A short string is a `ValueError` ("must hold N bytes, M given"). A format/type pair the binding cannot size is a `ValueError` that names both; an address is still accepted. An address other than 0 is trusted.
 
-Row length is `GL_UNPACK_ROW_LENGTH` or `GL_PACK_ROW_LENGTH` when that is set, otherwise the width. The stride is that many pixels times the bytes in a pixel, rounded up to the alignment. The required size is `stride × (height − 1) + width × bytes`. Uploads use the unpack state. `glReadPixels` uses the pack state.
+Row length is `GL_UNPACK_ROW_LENGTH` or `GL_PACK_ROW_LENGTH` when that is set, otherwise the width. The stride is that many pixels times the bytes in a pixel, rounded up to the alignment. The required size is `skip rows × stride + skip pixels × bytes + stride × (height − 1) + width × bytes`, with the skips from `GL_UNPACK_SKIP_ROWS`/`_PIXELS` or `GL_PACK_SKIP_ROWS`/`_PIXELS`; a string read holds the skipped bytes too. Uploads use the unpack state. `glReadPixels` uses the pack state.
 
 `glReadPixels(..., ?int $pixels)`: `null` answers the packed bytes as a string, and is refused while a `GL_PIXEL_PACK_BUFFER` is bound. An int is passed through as GL reads it: an address, or an offset into the bound pack buffer, where 0 is a valid offset. Address 0 is refused when no pack buffer is bound.
 

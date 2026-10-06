@@ -47,3 +47,34 @@ it('names CGL errors and EGL\'s client APIs', function (): void {
             ->and(eglQueryString($display, EGL_CLIENT_APIS))->toContain('OpenGL_ES');
     }
 });
+
+it('answers the display and surfaces current with an EGL context', function (): void {
+    if (MAC) {
+        expect(function_exists('eglGetCurrentDisplay'))->toBeFalse();
+
+        return;
+    }
+    $display = eglGetPlatformDisplay(EGL_PLATFORM_SURFACELESS_MESA, EGL_DEFAULT_DISPLAY, null);
+    eglInitialize($display, $major, $minor);
+    eglBindAPI(EGL_OPENGL_ES_API);
+    eglChooseConfig($display, [EGL_RENDERABLE_TYPE, EGL_OPENGL_ES3_BIT, EGL_SURFACE_TYPE, EGL_PBUFFER_BIT, EGL_NONE], $configs, 1, $count);
+    $context = eglCreateContext($display, $configs[0], null, [EGL_CONTEXT_MAJOR_VERSION, 3, EGL_NONE]);
+    $surface = eglCreatePbufferSurface($display, $configs[0], [EGL_WIDTH, 4, EGL_HEIGHT, 4, EGL_NONE]);
+    $previous = [eglGetCurrentDisplay(), eglGetCurrentSurface(EGL_DRAW), eglGetCurrentSurface(EGL_READ), eglGetCurrentContext()];
+    eglMakeCurrent($display, $surface, $surface, $context);
+
+    expect(eglGetCurrentDisplay()?->pointer())->toBe($display->pointer())
+        ->and(eglGetCurrentSurface(EGL_DRAW)?->pointer())->toBe($surface->pointer())
+        ->and(eglGetCurrentSurface(EGL_READ)?->pointer())->toBe($surface->pointer());
+
+    eglMakeCurrent($display, null, null, null);
+
+    expect(eglGetCurrentDisplay())->toBeNull()
+        ->and(eglGetCurrentSurface(EGL_DRAW))->toBeNull();
+    eglDestroySurface($display, $surface);
+    eglDestroyContext($display, $context);
+    // The suite's glContext() keeps its context current across tests: it goes back.
+    if (! is_null($previous[3])) {
+        eglMakeCurrent(...$previous);
+    }
+});

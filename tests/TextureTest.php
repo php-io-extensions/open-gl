@@ -50,6 +50,29 @@ it('sizes strings by the pixel-store alignment and row length', function (): voi
     glDeleteTextures([$texture]);
 });
 
+it('sizes strings by the pixel-store skips too', function (): void {
+    [$framebuffer, $texture] = textureFramebuffer(3, 2);
+    glPixelStorei(GL_UNPACK_SKIP_ROWS, 1);
+    glPixelStorei(GL_UNPACK_SKIP_PIXELS, 2);
+    // Row 12 bytes; one row and two pixels skipped first: 12 + 8 + 12 + 12 = 44.
+    expect(fn () => glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 3, 2, GL_RGBA, GL_UNSIGNED_BYTE, str_repeat("\0", 24)))->toThrow(ValueError::class, 'must hold 44 bytes, 24 given');
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 3, 2, GL_RGBA, GL_UNSIGNED_BYTE, str_repeat("\0", 20).str_repeat("\x11\x22\x33\x44", 6));
+    glPixelStorei(GL_UNPACK_SKIP_ROWS, 0);
+    glPixelStorei(GL_UNPACK_SKIP_PIXELS, 0);
+
+    glPixelStorei(GL_PACK_SKIP_ROWS, 1);
+    glPixelStorei(GL_PACK_SKIP_PIXELS, 2);
+    $read = glReadPixels(0, 0, 3, 2, GL_RGBA, GL_UNSIGNED_BYTE, null);
+    glPixelStorei(GL_PACK_SKIP_ROWS, 0);
+    glPixelStorei(GL_PACK_SKIP_PIXELS, 0);
+
+    expect(strlen($read))->toBe(44)
+        ->and(substr($read, 20))->toBe(str_repeat("\x11\x22\x33\x44", 6))
+        ->and(glGetError())->toBe(GL_NO_ERROR);
+    glDeleteFramebuffers([$framebuffer]);
+    glDeleteTextures([$texture]);
+});
+
 it('reads pixels into an address', function (): void {
     [$framebuffer, $texture] = textureFramebuffer(4, 2);
     $bytes = random_bytes(32);

@@ -77,11 +77,12 @@ static bool opengl_pixel_bytes(GLenum format, GLenum type, size_t *bytes)
 }
 
 /* row length = ROW_LENGTH ?: width; stride = that times bytes, rounded up to ALIGNMENT;
- * required = stride * (height - 1) + width * bytes. Unpack state for uploads, pack state for reads. */
+ * required = SKIP_ROWS * stride + SKIP_PIXELS * bytes + stride * (height - 1) + width * bytes.
+ * Unpack state for uploads, pack state for reads. */
 static bool opengl_image_bytes(GLenum format, GLenum type, zend_long width, zend_long height, bool unpack, size_t *required)
 {
 	size_t pixel, columns, row, stride;
-	GLint alignment = 4, row_length = 0;
+	GLint alignment = 4, row_length = 0, skip_rows = 0, skip_pixels = 0;
 
 	if (width < 0 || height < 0 || !opengl_pixel_bytes(format, type, &pixel)) {
 		return false;
@@ -90,9 +91,13 @@ static bool opengl_image_bytes(GLenum format, GLenum type, zend_long width, zend
 	if (unpack) {
 		glGetIntegerv(GL_UNPACK_ALIGNMENT, &alignment);
 		glGetIntegerv(GL_UNPACK_ROW_LENGTH, &row_length);
+		glGetIntegerv(GL_UNPACK_SKIP_ROWS, &skip_rows);
+		glGetIntegerv(GL_UNPACK_SKIP_PIXELS, &skip_pixels);
 	} else {
 		glGetIntegerv(GL_PACK_ALIGNMENT, &alignment);
 		glGetIntegerv(GL_PACK_ROW_LENGTH, &row_length);
+		glGetIntegerv(GL_PACK_SKIP_ROWS, &skip_rows);
+		glGetIntegerv(GL_PACK_SKIP_PIXELS, &skip_pixels);
 	}
 	if (alignment < 1) {
 		alignment = 1;
@@ -101,7 +106,14 @@ static bool opengl_image_bytes(GLenum format, GLenum type, zend_long width, zend
 	columns = (size_t) (row_length > 0 ? row_length : width);
 	row = columns * pixel;
 	stride = ((row + (size_t) alignment - 1) / (size_t) alignment) * (size_t) alignment;
-	*required = height == 0 ? 0 : stride * (size_t) (height - 1) + (size_t) width * pixel;
+	if (skip_rows < 0) {
+		skip_rows = 0;
+	}
+	if (skip_pixels < 0) {
+		skip_pixels = 0;
+	}
+	*required = height == 0 || width == 0 ? 0
+		: (size_t) skip_rows * stride + (size_t) skip_pixels * pixel + stride * (size_t) (height - 1) + (size_t) width * pixel;
 
 	return true;
 }

@@ -57,3 +57,17 @@ it('refuses buffer data shorter than its size', function (): void {
 
     glDeleteBuffers([$buffer]);
 });
+
+it('names the framebuffer and pack buffer bindings', function (): void {
+    glContext();
+    [$fbo] = glGenFramebuffers(1);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, $fbo);
+    glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, $draw);
+    glGetIntegerv(GL_PIXEL_PACK_BUFFER_BINDING, $pack);
+
+    expect($draw)->toBe([$fbo])
+        ->and($pack)->toBe([0])
+        ->and(GL_READ_FRAMEBUFFER_BINDING)->toBe(0x8CAA);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glDeleteFramebuffers([$fbo]);
+});

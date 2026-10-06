@@ -37,7 +37,8 @@ A string must hold what GL will read. Buffer data uses the `size` argument. Pixe
 - bytes in a pixel: `GL_RGBA`/`GL_UNSIGNED_BYTE` 4, `GL_RGB`/`GL_UNSIGNED_BYTE` 3, `GL_RED`/`GL_UNSIGNED_BYTE` 1, `GL_RGBA`/`GL_FLOAT` 16
 - columns: `GL_UNPACK_ROW_LENGTH` or `GL_PACK_ROW_LENGTH` when set, otherwise the width
 - stride: columns times bytes, rounded up to `GL_UNPACK_ALIGNMENT` or `GL_PACK_ALIGNMENT`
-- required: `stride × (height − 1) + width × bytes`
+- skips: `GL_UNPACK_SKIP_ROWS`/`GL_UNPACK_SKIP_PIXELS` or `GL_PACK_SKIP_ROWS`/`GL_PACK_SKIP_PIXELS`
+- required: `skip rows × stride + skip pixels × bytes + stride × (height − 1) + width × bytes`; 0 for an empty region
 
 Uploads read the unpack state. `glReadPixels` reads the pack state. A short string is `ValueError` "must hold N bytes, M given". A format/type pair that is not in the table is `ValueError` "cannot size format 0x… type 0x… for a string; pass an address". An address is still accepted.
 
