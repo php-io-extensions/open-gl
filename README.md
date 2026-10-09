@@ -52,6 +52,10 @@ Row length is `GL_UNPACK_ROW_LENGTH` or `GL_PACK_ROW_LENGTH` when that is set, o
 
 `glReadPixels(..., ?int $pixels)`: `null` answers the packed bytes as a string, and is refused while a `GL_PIXEL_PACK_BUFFER` is bound. An int is passed through as GL reads it: an address, or an offset into the bound pack buffer, where 0 is a valid offset. Address 0 is refused when no pack buffer is bound.
 
+Sized pixel types: `GL_RGBA` with `GL_UNSIGNED_BYTE` (4 bytes), `GL_HALF_FLOAT` (8, with `GL_RGBA16F` textures) and `GL_UNSIGNED_INT_2_10_10_10_REV` (4, `GL_RGB10_A2`).
+
+EGL window surfaces (Linux): `eglCreateWindowSurface(display, config, int $native_window, ?array $attribs)` takes an X11 window id or a `wl_egl_window` address from `wl_egl_window_create(int $wl_surface, w, h)` (`wl_egl_window_resize`, `wl_egl_window_destroy`; 0 surface answers 0). `eglGetConfigAttrib`, `eglSurfaceAttrib`. Constants for `EGL_GL_COLORSPACE_KHR` (sRGB, linear, scRGB linear, BT.2020 PQ, Display P3), float configs (`EGL_COLOR_COMPONENT_TYPE_*`), SMPTE 2086 / CTA 861.3 metadata, `EGL_PLATFORM_WAYLAND_KHR` / `_X11_KHR`. Pi 5 Mesa (labwc) lists `EGL_KHR_gl_colorspace` + `EGL_EXT_pixel_format_float` only; configs come deepest first, and only 8-bit ones take a colour space.
+
 `glMapBufferRange` answers the mapped address (`int`, 0 when GL fails). Bytes for PHP come from `glReadPixels`.
 
 Every `gl*` binding throws `Error` ("glX(): no current OpenGL context") when `CGLGetCurrentContext()` or `eglGetCurrentContext()` says nothing is current. Releasing the current context clears it first, so the same check holds afterwards.

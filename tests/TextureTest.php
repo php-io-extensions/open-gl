@@ -123,3 +123,26 @@ it('makes a complete 4x framebuffer of renderbuffers', function (): void {
     glDeleteFramebuffers([$framebuffer]);
     glDeleteRenderbuffers([$color, $stencil]);
 });
+
+it('makes half-float and 10-bit textures and reads half floats back', function (): void {
+    glContext();
+    [$texture] = glGenTextures(1);
+    glBindTexture(GL_TEXTURE_2D, $texture);
+    $two = pack('v4', 0x4000, 0x3C00, 0x3800, 0x3C00);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, 1, 1, 0, GL_RGBA, GL_HALF_FLOAT, $two);
+    [$fbo] = glGenFramebuffers(1);
+    glBindFramebuffer(GL_FRAMEBUFFER, $fbo);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, $texture, 0);
+    $complete = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+    $back = glReadPixels(0, 0, 1, 1, GL_RGBA, GL_HALF_FLOAT, null);
+    [$ten] = glGenTextures(1);
+    glBindTexture(GL_TEXTURE_2D, $ten);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB10_A2, 1, 1, 0, GL_RGBA, GL_UNSIGNED_INT_2_10_10_10_REV, null);
+
+    expect($complete)->toBe(GL_FRAMEBUFFER_COMPLETE)
+        ->and($back)->toBe($two)
+        ->and(glGetError())->toBe(GL_NO_ERROR);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glDeleteFramebuffers([$fbo]);
+    glDeleteTextures([$texture, $ten]);
+});

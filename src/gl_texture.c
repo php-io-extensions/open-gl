@@ -68,6 +68,14 @@ static bool opengl_pixel_bytes(GLenum format, GLenum type, size_t *bytes)
 		*bytes = 1;
 		return true;
 	}
+	if (type == GL_HALF_FLOAT && format == GL_RGBA) {
+		*bytes = 8;
+		return true;
+	}
+	if (type == GL_UNSIGNED_INT_2_10_10_10_REV && format == GL_RGBA) {
+		*bytes = 4;
+		return true;
+	}
 	if (type == GL_FLOAT && format == GL_RGBA) {
 		*bytes = 16;
 		return true;

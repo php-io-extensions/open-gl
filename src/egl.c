@@ -1,5 +1,6 @@
 #include "runtime.h"
 #include "../stubs/EGL_arginfo.h"
+#include <wayland-egl.h>
 
 zend_class_entry *opengl_ce_EGLDisplay;
 zend_class_entry *opengl_ce_EGLConfig;
@@ -333,6 +334,152 @@ ZEND_FUNCTION(eglCreatePbufferSurface)
 	opengl_box(return_value, surface, opengl_ce_EGLSurface);
 }
 
+ZEND_FUNCTION(eglCreateWindowSurface)
+{
+	zval *display_zv, *config_zv;
+	zend_long native;
+	HashTable *attrib_list = NULL;
+	EGLDisplay display;
+	EGLConfig config;
+	EGLSurface surface;
+	int *attribs;
+	bool failed = false;
+
+	ZEND_PARSE_PARAMETERS_START(4, 4)
+		Z_PARAM_OBJECT_OF_CLASS(display_zv, opengl_ce_EGLDisplay)
+		Z_PARAM_OBJECT_OF_CLASS(config_zv, opengl_ce_EGLConfig)
+		Z_PARAM_LONG(native)
+		Z_PARAM_ARRAY_HT_OR_NULL(attrib_list)
+	ZEND_PARSE_PARAMETERS_END();
+
+	display = egl_required(display_zv, opengl_ce_EGLDisplay, 1);
+	config = display != NULL ? egl_required(config_zv, opengl_ce_EGLConfig, 2) : NULL;
+	if (display == NULL || config == NULL) {
+		RETURN_THROWS();
+	}
+
+	attribs = opengl_attrib_list(attrib_list, EGL_NONE, 4, &failed);
+	if (failed) {
+		RETURN_THROWS();
+	}
+
+	/* EGLNativeWindowType is an X11 Window or a wl_egl_window pointer here: both fit an integer. */
+	surface = eglCreateWindowSurface(display, config, (EGLNativeWindowType) (uintptr_t) native, attribs);
+	if (attribs != NULL) {
+		efree(attribs);
+	}
+	if (surface == EGL_NO_SURFACE) {
+		RETURN_NULL();
+	}
+	opengl_box(return_value, surface, opengl_ce_EGLSurface);
+}
+
+ZEND_FUNCTION(eglGetConfigAttrib)
+{
+	zval *display_zv, *config_zv, *value_zv;
+	zend_long attribute;
+	EGLDisplay display;
+	EGLConfig config;
+	EGLint value = 0;
+	EGLBoolean ok;
+
+	ZEND_PARSE_PARAMETERS_START(4, 4)
+		Z_PARAM_OBJECT_OF_CLASS(display_zv, opengl_ce_EGLDisplay)
+		Z_PARAM_OBJECT_OF_CLASS(config_zv, opengl_ce_EGLConfig)
+		Z_PARAM_LONG(attribute)
+		Z_PARAM_ZVAL(value_zv)
+	ZEND_PARSE_PARAMETERS_END();
+
+	display = egl_required(display_zv, opengl_ce_EGLDisplay, 1);
+	config = display != NULL ? egl_required(config_zv, opengl_ce_EGLConfig, 2) : NULL;
+	if (display == NULL || config == NULL) {
+		RETURN_THROWS();
+	}
+
+	ok = eglGetConfigAttrib(display, config, (EGLint) attribute, &value);
+	ZEND_TRY_ASSIGN_REF_LONG(value_zv, value);
+	RETURN_BOOL(ok == EGL_TRUE);
+}
+
+ZEND_FUNCTION(eglSurfaceAttrib)
+{
+	zval *display_zv, *surface_zv;
+	zend_long attribute, value;
+	EGLDisplay display;
+	EGLSurface surface;
+
+	ZEND_PARSE_PARAMETERS_START(4, 4)
+		Z_PARAM_OBJECT_OF_CLASS(display_zv, opengl_ce_EGLDisplay)
+		Z_PARAM_OBJECT_OF_CLASS(surface_zv, opengl_ce_EGLSurface)
+		Z_PARAM_LONG(attribute)
+		Z_PARAM_LONG(value)
+	ZEND_PARSE_PARAMETERS_END();
+
+	display = egl_required(display_zv, opengl_ce_EGLDisplay, 1);
+	surface = display != NULL ? egl_required(surface_zv, opengl_ce_EGLSurface, 2) : NULL;
+	if (display == NULL || surface == NULL) {
+		RETURN_THROWS();
+	}
+
+	RETURN_BOOL(eglSurfaceAttrib(display, surface, (EGLint) attribute, (EGLint) value) == EGL_TRUE);
+}
+
+ZEND_FUNCTION(wl_egl_window_create)
+{
+	zend_long surface, width, height;
+	struct wl_egl_window *window;
+
+	ZEND_PARSE_PARAMETERS_START(3, 3)
+		Z_PARAM_LONG(surface)
+		Z_PARAM_LONG(width)
+		Z_PARAM_LONG(height)
+	ZEND_PARSE_PARAMETERS_END();
+
+	if (width < 1 || height < 1 || width > INT32_MAX || height > INT32_MAX) {
+		zend_argument_value_error(width < 1 || width > INT32_MAX ? 2 : 3, "must be between 1 and %d", INT32_MAX);
+		RETURN_THROWS();
+	}
+	if (surface == 0) {
+		RETURN_LONG(0);
+	}
+	window = wl_egl_window_create((struct wl_surface *) (uintptr_t) surface, (int) width, (int) height);
+	RETURN_LONG((zend_long) (uintptr_t) window);
+}
+
+ZEND_FUNCTION(wl_egl_window_resize)
+{
+	zend_long window, width, height, dx, dy;
+
+	ZEND_PARSE_PARAMETERS_START(5, 5)
+		Z_PARAM_LONG(window)
+		Z_PARAM_LONG(width)
+		Z_PARAM_LONG(height)
+		Z_PARAM_LONG(dx)
+		Z_PARAM_LONG(dy)
+	ZEND_PARSE_PARAMETERS_END();
+
+	if (window == 0) {
+		zend_argument_value_error(1, "must be a wl_egl_window address, got 0");
+		RETURN_THROWS();
+	}
+	wl_egl_window_resize((struct wl_egl_window *) (uintptr_t) window, (int) width, (int) height, (int) dx, (int) dy);
+}
+
+ZEND_FUNCTION(wl_egl_window_destroy)
+{
+	zend_long window;
+
+	ZEND_PARSE_PARAMETERS_START(1, 1)
+		Z_PARAM_LONG(window)
+	ZEND_PARSE_PARAMETERS_END();
+
+	if (window == 0) {
+		zend_argument_value_error(1, "must be a wl_egl_window address, got 0");
+		RETURN_THROWS();
+	}
+	wl_egl_window_destroy((struct wl_egl_window *) (uintptr_t) window);
+}
+
 ZEND_FUNCTION(eglDestroySurface)
 {
 	zval *display_zv, *surface_zv;
@@ -416,6 +563,114 @@ ZEND_FUNCTION(eglGetCurrentSurface)
 	ZEND_PARSE_PARAMETERS_END();
 
 	opengl_box(return_value, eglGetCurrentSurface((EGLint) readdraw), opengl_ce_EGLSurface);
+}
+
+ZEND_FUNCTION(eglSwapInterval)
+{
+	zval *display_zv;
+	zend_long interval;
+	EGLDisplay display;
+
+	ZEND_PARSE_PARAMETERS_START(2, 2)
+		Z_PARAM_OBJECT_OF_CLASS(display_zv, opengl_ce_EGLDisplay)
+		Z_PARAM_LONG(interval)
+	ZEND_PARSE_PARAMETERS_END();
+
+	display = egl_required(display_zv, opengl_ce_EGLDisplay, 1);
+	if (display == NULL) {
+		RETURN_THROWS();
+	}
+
+	RETURN_BOOL(eglSwapInterval(display, (EGLint) interval) == EGL_TRUE);
+}
+
+ZEND_FUNCTION(eglQuerySurface)
+{
+	zval *display_zv, *surface_zv, *value_zv;
+	zend_long attribute;
+	EGLDisplay display;
+	EGLSurface surface;
+	EGLint value = 0;
+
+	ZEND_PARSE_PARAMETERS_START(4, 4)
+		Z_PARAM_OBJECT_OF_CLASS(display_zv, opengl_ce_EGLDisplay)
+		Z_PARAM_OBJECT_OF_CLASS(surface_zv, opengl_ce_EGLSurface)
+		Z_PARAM_LONG(attribute)
+		Z_PARAM_ZVAL(value_zv)
+	ZEND_PARSE_PARAMETERS_END();
+
+	display = egl_required(display_zv, opengl_ce_EGLDisplay, 1);
+	surface = display != NULL ? egl_required(surface_zv, opengl_ce_EGLSurface, 2) : NULL;
+	if (display == NULL || surface == NULL) {
+		RETURN_THROWS();
+	}
+
+	if (eglQuerySurface(display, surface, (EGLint) attribute, &value) != EGL_TRUE) {
+		RETURN_FALSE;
+	}
+	ZEND_TRY_ASSIGN_REF_LONG(value_zv, value);
+	if (EG(exception)) {
+		RETURN_THROWS();
+	}
+	RETURN_TRUE;
+}
+
+ZEND_FUNCTION(eglSwapBuffersWithDamageKHR)
+{
+	zval *display_zv, *surface_zv, *item;
+	HashTable *rects;
+	EGLDisplay display;
+	EGLSurface surface;
+	const char *extensions;
+	PFNEGLSWAPBUFFERSWITHDAMAGEKHRPROC swap;
+	EGLint *flat = NULL;
+	uint32_t n, i = 0;
+	EGLBoolean swapped;
+
+	ZEND_PARSE_PARAMETERS_START(3, 3)
+		Z_PARAM_OBJECT_OF_CLASS(display_zv, opengl_ce_EGLDisplay)
+		Z_PARAM_OBJECT_OF_CLASS(surface_zv, opengl_ce_EGLSurface)
+		Z_PARAM_ARRAY_HT(rects)
+	ZEND_PARSE_PARAMETERS_END();
+
+	display = egl_required(display_zv, opengl_ce_EGLDisplay, 1);
+	surface = display != NULL ? egl_required(surface_zv, opengl_ce_EGLSurface, 2) : NULL;
+	if (display == NULL || surface == NULL) {
+		RETURN_THROWS();
+	}
+	n = zend_hash_num_elements(rects);
+	if (n % 4 != 0) {
+		zend_argument_value_error(3, "must hold four ints a rect, got %u ints", n);
+		RETURN_THROWS();
+	}
+
+	/* A procedure address alone does not say the display supports it: its extension string does. */
+	extensions = eglQueryString(display, EGL_EXTENSIONS);
+	if (extensions == NULL || strstr(extensions, "EGL_KHR_swap_buffers_with_damage") == NULL) {
+		RETURN_FALSE;
+	}
+	swap = (PFNEGLSWAPBUFFERSWITHDAMAGEKHRPROC) eglGetProcAddress("eglSwapBuffersWithDamageKHR");
+	if (swap == NULL) {
+		RETURN_FALSE;
+	}
+
+	if (n > 0) {
+		flat = safe_emalloc(n, sizeof(EGLint), 0);
+		ZEND_HASH_FOREACH_VAL(rects, item) {
+			ZVAL_DEREF(item);
+			if (Z_TYPE_P(item) != IS_LONG) {
+				efree(flat);
+				zend_argument_type_error(3, "must be a list of int, %s found", zend_zval_value_name(item));
+				RETURN_THROWS();
+			}
+			flat[i++] = (EGLint) Z_LVAL_P(item);
+		} ZEND_HASH_FOREACH_END();
+	}
+	swapped = swap(display, surface, flat, (EGLint) (n / 4));
+	if (flat != NULL) {
+		efree(flat);
+	}
+	RETURN_BOOL(swapped == EGL_TRUE);
 }
 
 ZEND_FUNCTION(eglSwapBuffers)

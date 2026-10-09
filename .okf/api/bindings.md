@@ -61,7 +61,7 @@ Constants: `kCGLPFAOpenGLProfile`, `kCGLOGLPVersion_3_2_Core`, `kCGLOGLPVersion_
 
 Handles: `EGLDisplay`, `EGLConfig`, `EGLContext`, `EGLSurface`.
 
-`eglGetDisplay`, `eglGetPlatformDisplay`, `eglInitialize`, `eglTerminate`, `eglBindAPI`, `eglChooseConfig`, `eglCreateContext`, `eglDestroyContext`, `eglCreatePbufferSurface`, `eglDestroySurface`, `eglMakeCurrent`, `eglGetCurrentContext`, `eglGetCurrentDisplay`, `eglGetCurrentSurface`, `eglSwapBuffers`, `eglGetError`, `eglQueryString`.
+`eglGetDisplay`, `eglGetPlatformDisplay`, `eglInitialize`, `eglTerminate`, `eglBindAPI`, `eglChooseConfig`, `eglCreateContext`, `eglDestroyContext`, `eglCreatePbufferSurface`, `eglDestroySurface`, `eglMakeCurrent`, `eglGetCurrentContext`, `eglGetCurrentDisplay`, `eglGetCurrentSurface`, `eglSwapBuffers`, `eglGetError`, `eglQueryString`; `eglSwapInterval`, `eglQuerySurface` (by reference), `eglSwapBuffersWithDamageKHR` (rects flat, four ints each, bottom-left origin; false with nothing swapped when the display's extension string does not list `EGL_KHR_swap_buffers_with_damage`). Constants `EGL_SWAP_BEHAVIOR`, `EGL_BUFFER_PRESERVED`, `EGL_BUFFER_DESTROYED`, `EGL_RENDER_BUFFER`, `EGL_BACK_BUFFER`, `EGL_SINGLE_BUFFER`.
 
 Constants: `EGL_PLATFORM_SURFACELESS_MESA`, `EGL_DEFAULT_DISPLAY` (literal 0), `EGL_NONE`, `EGL_SUCCESS`, `EGL_OPENGL_ES_API`, `EGL_RENDERABLE_TYPE`, `EGL_OPENGL_ES3_BIT`, `EGL_SURFACE_TYPE`, `EGL_PBUFFER_BIT`, `EGL_RED_SIZE`, `EGL_GREEN_SIZE`, `EGL_BLUE_SIZE`, `EGL_ALPHA_SIZE`, `EGL_DEPTH_SIZE`, `EGL_STENCIL_SIZE`, `EGL_WIDTH`, `EGL_HEIGHT`, `EGL_DRAW`, `EGL_READ`, `EGL_CONTEXT_MAJOR_VERSION`, `EGL_CONTEXT_MINOR_VERSION`, `EGL_VENDOR`, `EGL_VERSION`, `EGL_EXTENSIONS`, `EGL_CLIENT_APIS`.
 

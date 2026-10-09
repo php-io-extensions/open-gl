@@ -87,8 +87,8 @@ PHP_VER_ID="$(php -r 'echo PHP_VERSION_ID;')"
 
 command -v cc >/dev/null 2>&1 || die "cc not found — install: apt install build-essential"
 
-if ! pkg-config --exists 'egl >= 1.5' || ! pkg-config --exists glesv2; then
-    die "egl >= 1.5 and glesv2 not found — install: apt install libegl-dev libgles-dev"
+if ! pkg-config --exists 'egl >= 1.5' || ! pkg-config --exists glesv2 || ! pkg-config --exists wayland-egl; then
+    die "egl >= 1.5, glesv2 and wayland-egl not found — install: apt install libegl-dev libgles-dev libwayland-dev"
 fi
 
 PHP_BIN_REAL="$(php -r 'echo PHP_BINARY;' 2>/dev/null)"

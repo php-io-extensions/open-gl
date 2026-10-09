@@ -211,6 +211,192 @@ const EGL_EXTENSIONS = UNKNOWN;
  */
 const EGL_CLIENT_APIS = UNKNOWN;
 
+/**
+ * @var int
+ * @cvalue EGL_SWAP_BEHAVIOR
+ */
+const EGL_SWAP_BEHAVIOR = UNKNOWN;
+
+/**
+ * @var int
+ * @cvalue EGL_BUFFER_PRESERVED
+ */
+const EGL_BUFFER_PRESERVED = UNKNOWN;
+
+/**
+ * @var int
+ * @cvalue EGL_BUFFER_DESTROYED
+ */
+const EGL_BUFFER_DESTROYED = UNKNOWN;
+
+/**
+ * @var int
+ * @cvalue EGL_RENDER_BUFFER
+ */
+const EGL_RENDER_BUFFER = UNKNOWN;
+
+/**
+ * @var int
+ * @cvalue EGL_BACK_BUFFER
+ */
+const EGL_BACK_BUFFER = UNKNOWN;
+
+/**
+ * @var int
+ * @cvalue EGL_SINGLE_BUFFER
+ */
+const EGL_SINGLE_BUFFER = UNKNOWN;
+
+/**
+ * @var int
+ * @cvalue EGL_PLATFORM_WAYLAND_KHR
+ */
+const EGL_PLATFORM_WAYLAND_KHR = UNKNOWN;
+
+/**
+ * @var int
+ * @cvalue EGL_PLATFORM_X11_KHR
+ */
+const EGL_PLATFORM_X11_KHR = UNKNOWN;
+
+/**
+ * @var int
+ * @cvalue EGL_WINDOW_BIT
+ */
+const EGL_WINDOW_BIT = UNKNOWN;
+
+/**
+ * @var int
+ * @cvalue EGL_GL_COLORSPACE_KHR
+ */
+const EGL_GL_COLORSPACE_KHR = UNKNOWN;
+
+/**
+ * @var int
+ * @cvalue EGL_GL_COLORSPACE_SRGB_KHR
+ */
+const EGL_GL_COLORSPACE_SRGB_KHR = UNKNOWN;
+
+/**
+ * @var int
+ * @cvalue EGL_GL_COLORSPACE_LINEAR_KHR
+ */
+const EGL_GL_COLORSPACE_LINEAR_KHR = UNKNOWN;
+
+/**
+ * @var int
+ * @cvalue EGL_GL_COLORSPACE_SCRGB_LINEAR_EXT
+ */
+const EGL_GL_COLORSPACE_SCRGB_LINEAR_EXT = UNKNOWN;
+
+/**
+ * @var int
+ * @cvalue EGL_GL_COLORSPACE_BT2020_PQ_EXT
+ */
+const EGL_GL_COLORSPACE_BT2020_PQ_EXT = UNKNOWN;
+
+/**
+ * @var int
+ * @cvalue EGL_GL_COLORSPACE_DISPLAY_P3_EXT
+ */
+const EGL_GL_COLORSPACE_DISPLAY_P3_EXT = UNKNOWN;
+
+/**
+ * @var int
+ * @cvalue EGL_COLOR_COMPONENT_TYPE_EXT
+ */
+const EGL_COLOR_COMPONENT_TYPE_EXT = UNKNOWN;
+
+/**
+ * @var int
+ * @cvalue EGL_COLOR_COMPONENT_TYPE_FIXED_EXT
+ */
+const EGL_COLOR_COMPONENT_TYPE_FIXED_EXT = UNKNOWN;
+
+/**
+ * @var int
+ * @cvalue EGL_COLOR_COMPONENT_TYPE_FLOAT_EXT
+ */
+const EGL_COLOR_COMPONENT_TYPE_FLOAT_EXT = UNKNOWN;
+
+/**
+ * @var int
+ * @cvalue EGL_SMPTE2086_DISPLAY_PRIMARY_RX_EXT
+ */
+const EGL_SMPTE2086_DISPLAY_PRIMARY_RX_EXT = UNKNOWN;
+
+/**
+ * @var int
+ * @cvalue EGL_SMPTE2086_DISPLAY_PRIMARY_RY_EXT
+ */
+const EGL_SMPTE2086_DISPLAY_PRIMARY_RY_EXT = UNKNOWN;
+
+/**
+ * @var int
+ * @cvalue EGL_SMPTE2086_DISPLAY_PRIMARY_GX_EXT
+ */
+const EGL_SMPTE2086_DISPLAY_PRIMARY_GX_EXT = UNKNOWN;
+
+/**
+ * @var int
+ * @cvalue EGL_SMPTE2086_DISPLAY_PRIMARY_GY_EXT
+ */
+const EGL_SMPTE2086_DISPLAY_PRIMARY_GY_EXT = UNKNOWN;
+
+/**
+ * @var int
+ * @cvalue EGL_SMPTE2086_DISPLAY_PRIMARY_BX_EXT
+ */
+const EGL_SMPTE2086_DISPLAY_PRIMARY_BX_EXT = UNKNOWN;
+
+/**
+ * @var int
+ * @cvalue EGL_SMPTE2086_DISPLAY_PRIMARY_BY_EXT
+ */
+const EGL_SMPTE2086_DISPLAY_PRIMARY_BY_EXT = UNKNOWN;
+
+/**
+ * @var int
+ * @cvalue EGL_SMPTE2086_WHITE_POINT_X_EXT
+ */
+const EGL_SMPTE2086_WHITE_POINT_X_EXT = UNKNOWN;
+
+/**
+ * @var int
+ * @cvalue EGL_SMPTE2086_WHITE_POINT_Y_EXT
+ */
+const EGL_SMPTE2086_WHITE_POINT_Y_EXT = UNKNOWN;
+
+/**
+ * @var int
+ * @cvalue EGL_SMPTE2086_MAX_LUMINANCE_EXT
+ */
+const EGL_SMPTE2086_MAX_LUMINANCE_EXT = UNKNOWN;
+
+/**
+ * @var int
+ * @cvalue EGL_SMPTE2086_MIN_LUMINANCE_EXT
+ */
+const EGL_SMPTE2086_MIN_LUMINANCE_EXT = UNKNOWN;
+
+/**
+ * @var int
+ * @cvalue EGL_CTA861_3_MAX_CONTENT_LIGHT_LEVEL_EXT
+ */
+const EGL_CTA861_3_MAX_CONTENT_LIGHT_LEVEL_EXT = UNKNOWN;
+
+/**
+ * @var int
+ * @cvalue EGL_CTA861_3_MAX_FRAME_AVERAGE_LEVEL_EXT
+ */
+const EGL_CTA861_3_MAX_FRAME_AVERAGE_LEVEL_EXT = UNKNOWN;
+
+/**
+ * @var int
+ * @cvalue EGL_METADATA_SCALING_EXT
+ */
+const EGL_METADATA_SCALING_EXT = UNKNOWN;
+
 function eglGetDisplay(?int $display_id): ?EGLDisplay {}
 
 /** $attrib_list, when given, is a list of ints ending with EGL_NONE. Values are widened to EGLAttrib. */
@@ -233,6 +419,25 @@ function eglDestroyContext(EGLDisplay $display, EGLContext $context): bool {}
 /** $attrib_list, when given, is a list of ints ending with EGL_NONE. */
 function eglCreatePbufferSurface(EGLDisplay $display, EGLConfig $config, ?array $attrib_list): ?EGLSurface {}
 
+/**
+ * $native_window is the platform's window: an X11 Window id, or a
+ * wl_egl_window address from wl_egl_window_create(). $attrib_list, when
+ * given, is a list of ints ending with EGL_NONE. Null when EGL makes none.
+ */
+function eglCreateWindowSurface(EGLDisplay $display, EGLConfig $config, int $native_window, ?array $attrib_list): ?EGLSurface {}
+
+/** $value receives the config's attribute. */
+function eglGetConfigAttrib(EGLDisplay $display, EGLConfig $config, int $attribute, ?int &$value): bool {}
+
+function eglSurfaceAttrib(EGLDisplay $display, EGLSurface $surface, int $attribute, int $value): bool {}
+
+/** libwayland-egl: a wl_egl_window over the wl_surface at $surface; 0 when none is made. */
+function wl_egl_window_create(int $surface, int $width, int $height): int {}
+
+function wl_egl_window_resize(int $window, int $width, int $height, int $dx, int $dy): void {}
+
+function wl_egl_window_destroy(int $window): void {}
+
 function eglDestroySurface(EGLDisplay $display, EGLSurface $surface): bool {}
 
 function eglMakeCurrent(EGLDisplay $display, ?EGLSurface $draw, ?EGLSurface $read, ?EGLContext $ctx): bool {}
@@ -243,6 +448,21 @@ function eglGetCurrentDisplay(): ?EGLDisplay {}
 
 /** $readdraw is EGL_DRAW or EGL_READ. */
 function eglGetCurrentSurface(int $readdraw): ?EGLSurface {}
+
+/** The current context's swap interval on $display: 0 off, 1 each refresh, and the driver's own minimum and maximum around them. */
+function eglSwapInterval(EGLDisplay $display, int $interval): bool {}
+
+/** $value receives the attribute's value. */
+function eglQuerySurface(EGLDisplay $display, EGLSurface $surface, int $attribute, ?int &$value): bool {}
+
+/**
+ * EGL_KHR_swap_buffers_with_damage, through eglGetProcAddress: $rects is a flat list, four ints a rect
+ * (x, y, width, height, origin bottom-left); an empty list damages the whole surface. False, with
+ * nothing swapped, when $display does not list the extension.
+ *
+ * @throws ValueError When $rects is not a multiple of four ints.
+ */
+function eglSwapBuffersWithDamageKHR(EGLDisplay $display, EGLSurface $surface, array $rects): bool {}
 
 function eglSwapBuffers(EGLDisplay $display, EGLSurface $surface): bool {}
 

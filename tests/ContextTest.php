@@ -78,3 +78,61 @@ it('answers the display and surfaces current with an EGL context', function (): 
         eglMakeCurrent(...$previous);
     }
 });
+
+it('queries a surface and sets the swap interval of the current context', function (): void {
+    $display = eglGetPlatformDisplay(EGL_PLATFORM_SURFACELESS_MESA, EGL_DEFAULT_DISPLAY, null);
+    eglInitialize($display, $major, $minor);
+    eglBindAPI(EGL_OPENGL_ES_API);
+    eglChooseConfig($display, [EGL_RENDERABLE_TYPE, EGL_OPENGL_ES3_BIT, EGL_SURFACE_TYPE, EGL_PBUFFER_BIT, EGL_NONE], $configs, 1, $count);
+    $context = eglCreateContext($display, $configs[0], null, [EGL_CONTEXT_MAJOR_VERSION, 3, EGL_NONE]);
+    $surface = eglCreatePbufferSurface($display, $configs[0], [EGL_WIDTH, 6, EGL_HEIGHT, 4, EGL_NONE]);
+    $previous = [eglGetCurrentDisplay(), eglGetCurrentSurface(EGL_DRAW), eglGetCurrentSurface(EGL_READ), eglGetCurrentContext()];
+    eglMakeCurrent($display, $surface, $surface, $context);
+
+    expect(eglQuerySurface($display, $surface, EGL_WIDTH, $width))->toBeTrue()
+        ->and(eglQuerySurface($display, $surface, EGL_HEIGHT, $height))->toBeTrue()
+        ->and([$width, $height])->toBe([6, 4])
+        ->and(eglQuerySurface($display, $surface, EGL_SWAP_BEHAVIOR, $behaviour))->toBeTrue()
+        ->and($behaviour)->toBeIn([EGL_BUFFER_PRESERVED, EGL_BUFFER_DESTROYED])
+        ->and(eglQuerySurface($display, $surface, 0x7FFF, $nothing))->toBeFalse()
+        ->and(eglSwapInterval($display, 0))->toBeTrue();
+
+    eglMakeCurrent($display, null, null, null);
+    eglDestroySurface($display, $surface);
+    eglDestroyContext($display, $context);
+    if (! is_null($previous[3])) {
+        eglMakeCurrent(...$previous);
+    }
+})->skip(MAC, 'EGL is the Linux build');
+
+it('swaps a window surface with only the damaged rects', function (): void {
+    // Taken before GLFW: creating its window releases whatever context the thread had current.
+    $previous = [eglGetCurrentDisplay(), eglGetCurrentSurface(EGL_DRAW), eglGetCurrentSurface(EGL_READ), eglGetCurrentContext()];
+    glfwInitHint(GLFW_WAYLAND_LIBDECOR, GLFW_WAYLAND_DISABLE_LIBDECOR);
+    glfwInit() || throw new RuntimeException('glfwInit');
+    glfwDefaultWindowHints();
+    glfwWindowHint(GLFW_VISIBLE, GLFW_TRUE);
+    glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API);
+    glfwWindowHint(GLFW_CONTEXT_CREATION_API, GLFW_EGL_CONTEXT_API);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    $window = glfwCreateWindow(64, 48, 'ext-opengl damage');
+    glfwMakeContextCurrent($window);
+    $display = EGLDisplay::fromPointer(glfwGetEGLDisplay());
+    $surface = EGLSurface::fromPointer(glfwGetEGLSurface($window));
+    glfwPollEvents();
+
+    $supported = str_contains((string) eglQueryString($display, EGL_EXTENSIONS), 'EGL_KHR_swap_buffers_with_damage');
+    glClearColor(1.0, 0.0, 0.0, 1.0);
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    expect(eglSwapBuffersWithDamageKHR($display, $surface, [0, 0, 16, 16, 32, 16, 8, 8]))->toBe($supported)
+        ->and(eglSwapBuffersWithDamageKHR($display, $surface, []))->toBe($supported)
+        ->and(fn () => eglSwapBuffersWithDamageKHR($display, $surface, [0, 0, 16]))->toThrow(ValueError::class, 'must hold four ints a rect, got 3 ints')
+        ->and($supported)->toBeTrue();
+
+    glfwMakeContextCurrent(null);
+    glfwDestroyWindow($window);
+    if (! is_null($previous[3])) {
+        eglMakeCurrent(...$previous);
+    }
+})->skip(MAC || ! extension_loaded('glfw') || getenv('WAYLAND_DISPLAY') === false, 'needs Linux, ext-glfw and the Wayland session');

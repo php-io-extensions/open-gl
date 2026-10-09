@@ -12,7 +12,7 @@ if test "$PHP_OPENGL" != "no"; then
       OPENGL_CFLAGS="-DGL_SILENCE_DEPRECATION"
       ;;
     *)
-      PKG_CHECK_MODULES([OPENGL_GLES], [egl >= 1.5 glesv2])
+      PKG_CHECK_MODULES([OPENGL_GLES], [egl >= 1.5 glesv2 wayland-egl])
       PHP_EVAL_INCLINE([$OPENGL_GLES_CFLAGS])
       PHP_EVAL_LIBLINE([$OPENGL_GLES_LIBS], [OPENGL_SHARED_LIBADD])
       OPENGL_SOURCES="$OPENGL_SOURCES src/egl.c"

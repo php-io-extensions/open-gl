@@ -371,6 +371,30 @@ const GL_RGBA8 = UNKNOWN;
 
 /**
  * @var int
+ * @cvalue GL_RGBA16F
+ */
+const GL_RGBA16F = UNKNOWN;
+
+/**
+ * @var int
+ * @cvalue GL_HALF_FLOAT
+ */
+const GL_HALF_FLOAT = UNKNOWN;
+
+/**
+ * @var int
+ * @cvalue GL_RGB10_A2
+ */
+const GL_RGB10_A2 = UNKNOWN;
+
+/**
+ * @var int
+ * @cvalue GL_UNSIGNED_INT_2_10_10_10_REV
+ */
+const GL_UNSIGNED_INT_2_10_10_10_REV = UNKNOWN;
+
+/**
+ * @var int
  * @cvalue GL_RGB
  */
 const GL_RGB = UNKNOWN;
