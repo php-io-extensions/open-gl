@@ -8,7 +8,12 @@ if test "$PHP_OPENGL" != "no"; then
   case $host_os in
     darwin*)
       OPENGL_SOURCES="$OPENGL_SOURCES src/cgl.c"
-      OPENGL_SHARED_LIBADD="-framework OpenGL"
+      dnl Shared, the framework goes to the .so; compiled in, to PHP's own link line.
+      if test "$ext_shared" = "yes"; then
+        OPENGL_SHARED_LIBADD="-framework OpenGL"
+      else
+        PHP_ADD_FRAMEWORK([OpenGL])
+      fi
       OPENGL_CFLAGS="-DGL_SILENCE_DEPRECATION"
       ;;
     *)
