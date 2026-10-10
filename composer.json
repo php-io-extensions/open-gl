@@ -31,6 +31,21 @@
     "extra": {
         "branch-alias": {
             "dev-main": "0.10.x-dev"
+        },
+        "venusian": {
+            "system": {
+                "apt": {
+                    "build": [
+                        "libegl-dev",
+                        "libgles-dev",
+                        "libwayland-dev"
+                    ],
+                    "recommends": [
+                        "libegl-mesa0",
+                        "libgl1-mesa-dri"
+                    ]
+                }
+            }
         }
     },
     "php-ext": {

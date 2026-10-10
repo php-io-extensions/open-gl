@@ -17,6 +17,7 @@ headers. CGL handles, EGL handles, and `GLsync` are final classes.
   defines `GL_SILENCE_DEPRECATION` and links `OpenGL.framework`.
 - Linux: `libegl-dev` and `libgles-dev` (EGL 1.5 and GLESv2). The Pi measured
   here is Mesa 26.2, EGL 1.5, OpenGL ES 3.1 on V3D 7.1, `GL_MAX_SAMPLES` 4.
+- `venusian build` reads the system packages from `extra.venusian.system` in composer.json: apt packages to build with and the run-time ones a `.deb` depends on or recommends, and the Homebrew ones.
 
 ## Install
 
