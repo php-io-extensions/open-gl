@@ -1,5 +1,7 @@
 # ext-opengl
 
+[![CI](https://img.shields.io/github/actions/workflow/status/php-io-extensions/open-gl/ci.yml?style=flat-square&label=CI)](https://github.com/php-io-extensions/open-gl/actions/workflows/ci.yml)
+
 1:1 PHP bindings of the OpenGL 4.1 core calls and the OpenGL ES 3 calls both
 dialects share, plus the context API that makes an offscreen context possible:
 CGL on macOS, EGL on Linux. Written in C against the Zend API. PHP 8.4+, NTS
