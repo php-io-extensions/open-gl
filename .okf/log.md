@@ -3,6 +3,7 @@
 ## 2026-10-28
 
 * **Version**: 0.11.0 in `PHP_OPENGL_VERSION` (`php_opengl.h`), `AGENTS.md` and the index; `branch-alias` `dev-main` is `0.11.x-dev`. Promoted with the Venusian 0.11 ecosystem. No API or behaviour change. Built and loaded on Homebrew PHP 8.4 NTS and ZTS (25 passed, 5 skipped each), the Pi on 8.4 ZTS (30 passed) and an x86_64 8.4 NTS box (27 passed, 3 skipped).
+* **Coverage**: `scripts/support.php` writes `SUPPORT.md` and the README's API badge over the floors: gl.xml's OpenGL 4.1 core profile (each version's requires, its core-profile removes taken away) and OpenGL ES 2.0 / 3.0, egl.xml's EGL 1.0–1.5, at pinned Khronos registry commits, plus every CGL function of the macOS SDK's OpenGL.framework headers (clang AST; Apple deprecates all of OpenGL, so deprecation is not a filter there). Extensions are not counted; a command both dialects share sits under its GL version. Bound when a stub declares the function of the same name. Registries download once into `scripts/.support-cache/` (gitignored); macOS only; `--check` exits 1 when the list or badge is stale. 115 / 579 (19.9%).
 
 ## 2026-10-09
 

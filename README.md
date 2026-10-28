@@ -1,6 +1,7 @@
 # ext-opengl
 
 [![CI](https://img.shields.io/github/actions/workflow/status/php-io-extensions/open-gl/ci.yml?style=flat-square&label=CI)](https://github.com/php-io-extensions/open-gl/actions/workflows/ci.yml)
+[![OpenGL API](https://img.shields.io/badge/OpenGL_API-19.9%25_%28115%2F579%29-blue?style=flat-square)](SUPPORT.md)
 
 1:1 PHP bindings of the OpenGL 4.1 core calls and the OpenGL ES 3 calls both
 dialects share, plus the context API that makes an offscreen context possible:
@@ -62,6 +63,18 @@ EGL window surfaces (Linux): `eglCreateWindowSurface(display, config, int $nativ
 Every `gl*` binding throws `Error` ("glX(): no current OpenGL context") when `CGLGetCurrentContext()` or `eglGetCurrentContext()` says nothing is current. Releasing the current context clears it first, so the same check holds afterwards.
 
 On OpenGL ES, `glTexSubImage2D` of `GL_RGB` into a texture created with sized internal format `GL_RGBA8` is `GL_INVALID_OPERATION`. Desktop GL accepts that conversion. The sizing test lets the 25-byte string through, then drains that driver error so it cannot fail a later `glGetError()`.
+
+## Coverage
+
+[SUPPORT.md](SUPPORT.md) lists every command of the floors this extension builds on: OpenGL 4.1
+core profile, OpenGL ES 3.0 and EGL 1.5 from the Khronos registries, and every CGL function of the
+macOS SDK's OpenGL.framework headers, each marked bound or not; extensions are not counted. The API
+badge is computed from it. Regenerate both on macOS after a binding change, and check them:
+
+```bash
+php84 scripts/support.php           # writes SUPPORT.md and the badge
+php84 scripts/support.php --check   # exits 1 when either is stale
+```
 
 ## Example
 
