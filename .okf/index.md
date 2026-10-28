@@ -4,7 +4,7 @@ okf_version: "0.2"
 
 # ext-opengl
 
-1:1 PHP bindings of the OpenGL calls both dialects share, with CGL on macOS and EGL on Linux. Version 0.10.0.
+1:1 PHP bindings of the OpenGL calls both dialects share, with CGL on macOS and EGL on Linux. Version 0.11.0.
 
 # API
 

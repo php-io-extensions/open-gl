@@ -13,9 +13,6 @@ sources:
   - id: pi
     resource: install-debian-trixie.sh
     title: install-debian-trixie.sh
-  - id: measured
-    resource: /docs/superpowers/plans/2026-10-04-slice-3-ext-opengl.md
-    title: Measured Pi facts
 ---
 
 # Overview
@@ -36,10 +33,9 @@ Both suites must exit 0. On the Pi, copy the tree (tar without macOS metadata or
 
 # Measured on the Pi (2026-10-04)
 
-Surfaceless EGL (`eglGetPlatformDisplay(EGL_PLATFORM_SURFACELESS_MESA, EGL_DEFAULT_DISPLAY, NULL)`): EGL 1.5, one config with `EGL_OPENGL_ES3_BIT` and `EGL_PBUFFER_BIT`, a 3.1 context made current with no surface, `GL_VERSION` "OpenGL ES 3.1 Mesa 26.2.0-1~bpo13+0~rpt3", `GL_RENDERER` "V3D 7.1.7.0", `GL_MAX_SAMPLES` 4. A framebuffer of a 4× `GL_RGBA8` renderbuffer and a 4× `GL_DEPTH24_STENCIL8` renderbuffer is complete. pkg-config: `egl` 1.5, `glesv2` 3.2.[^measured]
+Surfaceless EGL (`eglGetPlatformDisplay(EGL_PLATFORM_SURFACELESS_MESA, EGL_DEFAULT_DISPLAY, NULL)`): EGL 1.5, one config with `EGL_OPENGL_ES3_BIT` and `EGL_PBUFFER_BIT`, a 3.1 context made current with no surface, `GL_VERSION` "OpenGL ES 3.1 Mesa 26.2.0-1~bpo13+0~rpt3", `GL_RENDERER` "V3D 7.1.7.0", `GL_MAX_SAMPLES` 4. A framebuffer of a 4× `GL_RGBA8` renderbuffer and a 4× `GL_DEPTH24_STENCIL8` renderbuffer is complete. pkg-config: `egl` 1.5, `glesv2` 3.2.[^pi]
 
 The gate's hypotenuse, pixels `(i, 7 − i)`, is neither solid red nor solid black on CGL or on this V3D.
 
 [^mac]: install-macos.sh
 [^pi]: install-debian-trixie.sh
-[^measured]: Slice 3 plan, measured before planning

@@ -6,9 +6,9 @@ tags: [opengl, cgl, egl, context]
 status: draft
 generated: { by: grok/4.7, at: 2026-10-04T23:50:00-04:00 }
 sources:
-  - id: plan
-    resource: /docs/superpowers/plans/2026-10-04-slice-3-ext-opengl.md
-    title: Slice 3 plan
+  - id: contexts
+    resource: src/
+    title: cgl.c and egl.c
   - id: measured
     resource: src/egl.c
     title: Surfaceless EGL path
@@ -31,7 +31,7 @@ An OpenGL context cannot exist without a platform context API, so CGL and EGL ar
 
 Dropping the last PHP reference removes the identity-table entry and does not destroy the native object. `fromPointer(0)` throws `ValueError`. Any other address is trusted.
 
-`CGLReleaseContext` and `eglDestroyContext` clear the context when it is the current one, then release it. A later `gl*` call throws instead of using a dangling current context.[^plan]
+`CGLReleaseContext` and `eglDestroyContext` clear the context when it is the current one, then release it. A later `gl*` call throws instead of using a dangling current context.[^contexts]
 
 # The guard
 
@@ -41,5 +41,5 @@ OPENGL_REQUIRE_CONTEXT()
 
 opens every `gl*` function. It calls `CGLGetCurrentContext()` or `eglGetCurrentContext()`. When that is null it throws `Error` "`name(): no current OpenGL context`" and returns. CGL and EGL functions themselves do not require a current context.
 
-[^plan]: Slice 3 plan
+[^contexts]: cgl.c and egl.c
 [^measured]: src/egl.c

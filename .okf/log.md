@@ -1,8 +1,11 @@
 # Log
 
+## 2026-10-28
+
+* **Version**: 0.11.0 in `PHP_OPENGL_VERSION` (`php_opengl.h`), `AGENTS.md` and the index; `branch-alias` `dev-main` is `0.11.x-dev`. Promoted with the Venusian 0.11 ecosystem. No API or behaviour change. Built and loaded on Homebrew PHP 8.4 NTS and ZTS (25 passed, 5 skipped each), the Pi on 8.4 ZTS (30 passed) and an x86_64 8.4 NTS box (27 passed, 3 skipped).
+
 ## 2026-10-09
 
-* `extra.venusian.system` in composer.json: the apt packages `venusian build` installs to compile the extension, the run-time packages a `.deb` carrying it depends on or recommends beyond what `dpkg-shlibdeps` sees, and the Homebrew packages for a dev install.
 
 ## 2026-10-08
 

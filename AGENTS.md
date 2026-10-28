@@ -10,4 +10,4 @@
 8. **The stub is the declaration.** Edit `stubs/*.stub.php`, regenerate with `php84 /opt/homebrew/opt/php@8.4/lib/php/build/gen_stub.php stubs`, and commit both. Never hand-edit `*_arginfo.h`. `gl.stub.php` is both platforms; `CGL.stub.php` is macOS; `EGL.stub.php` is Linux. One `.c` includes `gl_arginfo.h` and registers the functions (`src/gl_state.c`). A later `.c` defines more of those functions and does not register them again.
 9. **Build.** `./install-macos.sh` into Homebrew `php@8.4` and `php@8.4-zts`. On the Pi, copy the tree and `./install-debian-trixie.sh`. Pest at `-d memory_limit=128M` on `php84`, `zhp`, and Pi `php`. Gate a commit on the suite's exit code.
 10. **Durable facts go in `.okf`.** Update the matching concept and append `.okf/log.md`.
-11. **Version** is `PHP_OPENGL_VERSION` in `php_opengl.h`: 0.10.0. `os-families` are `linux` and `darwin`.
+11. **Version** is `PHP_OPENGL_VERSION` in `php_opengl.h`: 0.11.0. `os-families` are `linux` and `darwin`.
