@@ -1,0 +1,55 @@
+{
+  "symbols": {},
+  "glue": {
+    "*": {"methods": ["pointer", "fromPointer"], "forwards": "address hand-off on every handle class"}
+  },
+  "helpers": {
+    "marshal": ["opengl_int_list", "opengl_list_count", "opengl_gen_names", "opengl_delete_names", "opengl_source", "cgl_attribs", "egl_attrib_list", "egl_wl_window", "opengl_info_log"],
+    "translate": []
+  },
+  "sites": {
+    "opengl-no-context": {"kind": "refusal", "outcome": 1, "probe": "tests/Probes/NoContextTest.php"},
+    "opengl-attrib-terminator": {"kind": "refusal", "outcome": 1, "probe": "tests/Probes/AttribTerminatorTest.php"},
+    "opengl-bytes-length": {"kind": "refusal", "outcome": 1, "probe": "tests/Probes/BytesLengthTest.php"},
+    "opengl-null-address": {"kind": "refusal", "outcome": 1, "probe": "tests/Probes/NullAddressTest.php"},
+    "opengl-list-count": {"kind": "refusal", "outcome": 1, "probe": "tests/Probes/ListCountTest.php"},
+    "opengl-wl-null-window": {"kind": "refusal", "outcome": 1, "probe": "tests/Probes/WaylandWindowTest.php"}
+  },
+  "typemap": {
+    "GLenum": ["int"],
+    "GLbitfield": ["int"],
+    "GLint": ["int"],
+    "GLuint": ["int"],
+    "GLsizei": ["int"],
+    "GLintptr": ["int"],
+    "GLsizeiptr": ["int"],
+    "GLuint64": ["int"],
+    "GLfloat": ["float"],
+    "GLboolean": ["bool"],
+    "GLint*": ["int", "array"],
+    "GLuint*": ["array"],
+    "GLenum*": ["array"],
+    "GLfloat*": ["array"],
+    "GLsizei*": ["int"],
+    "GLchar*": ["string"],
+    "GLubyte*": ["string", "null"],
+    "GLchar**": ["array"],
+    "GLvoid*": ["string", "int", "null"],
+    "CGLError": ["int"],
+    "CGLContextParameter": ["int"],
+    "CGLPixelFormatAttribute*": ["array"],
+    "CGLPixelFormatObj*": ["CGLPixelFormatObj"],
+    "CGLContextObj*": ["CGLContextObj"],
+    "EGLint": ["int"],
+    "EGLenum": ["int"],
+    "EGLBoolean": ["bool"],
+    "EGLint*": ["int", "array"],
+    "EGLAttrib*": ["array"],
+    "EGLConfig*": ["array"],
+    "EGLNativeDisplayType": ["int"],
+    "EGLNativeWindowType": ["int"],
+    "void*": ["int"],
+    "wl_surface*": ["int"],
+    "wl_egl_window*": ["int"]
+  }
+}

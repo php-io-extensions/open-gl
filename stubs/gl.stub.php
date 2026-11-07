@@ -66,7 +66,11 @@ function glGetError(): int {}
 
 function glGetString(int $name): ?string {}
 
-/** GL_VIEWPORT and GL_SCISSOR_BOX fill 4 ints, GL_MAX_VIEWPORT_DIMS fills 2, every other pname fills 1. */
+/**
+ * $data is the list of ints GL writes for $pname: 4 for GL_VIEWPORT, GL_SCISSOR_BOX, GL_COLOR_WRITEMASK,
+ * GL_COLOR_CLEAR_VALUE and GL_BLEND_COLOR; 2 for the ranges and GL_MAX_VIEWPORT_DIMS; GL_NUM_*_FORMATS for
+ * GL_COMPRESSED_TEXTURE_FORMATS, GL_PROGRAM_BINARY_FORMATS and GL_SHADER_BINARY_FORMATS; 1 for every other pname.
+ */
 function glGetIntegerv(int $pname, ?array &$data): void {}
 
 function glFlush(): void {}
@@ -117,13 +121,19 @@ const GL_FALSE = UNKNOWN;
 
 function glCreateShader(int $type): int {}
 
-function glShaderSource(int $shader, array $strings): void {}
+/**
+ * $string is a list of strings and $length null or a list of ints, as glShaderSource reads them: GL reads
+ * $count of each. A null $length reads each string to its NUL. Each element of $string is converted as PHP
+ * converts a value to a string.
+ */
+function glShaderSource(int $shader, int $count, array $string, ?array $length): void {}
 
 function glCompileShader(int $shader): void {}
 
 function glGetShaderiv(int $shader, int $pname, ?int &$params): void {}
 
-function glGetShaderInfoLog(int $shader): string {}
+/** GL writes at most $bufSize bytes, its NUL included: $length is what it wrote without the NUL, $infoLog those bytes. */
+function glGetShaderInfoLog(int $shader, int $bufSize, ?int &$length, ?string &$infoLog): void {}
 
 function glDeleteShader(int $shader): void {}
 
@@ -137,7 +147,8 @@ function glLinkProgram(int $program): void {}
 
 function glGetProgramiv(int $program, int $pname, ?int &$params): void {}
 
-function glGetProgramInfoLog(int $program): string {}
+/** GL writes at most $bufSize bytes, its NUL included: $length is what it wrote without the NUL, $infoLog those bytes. */
+function glGetProgramInfoLog(int $program, int $bufSize, ?int &$length, ?string &$infoLog): void {}
 
 function glUseProgram(int $program): void {}
 
@@ -155,11 +166,11 @@ function glUniform2f(int $location, float $v0, float $v1): void {}
 
 function glUniform4f(int $location, float $v0, float $v1, float $v2, float $v3): void {}
 
-/** $value is one or more 4×4 matrices, column-major, 16 floats each. The count passed to GL is count($value) / 16. */
-function glUniformMatrix4fv(int $location, bool $transpose, array $value): void {}
+/** $value is a list of floats, 16 a matrix, each converted as PHP's (float) converts it: GL reads $count matrices. */
+function glUniformMatrix4fv(int $location, int $count, bool $transpose, array $value): void {}
 
 /**
- * An address other than 0 is trusted: the binding does not check that it points at a live object.
+ * pointer() is 0 once glDeleteSync released it; fromPointer(0) is null. Any other address is trusted.
  *
  * @not-serializable
  */
@@ -169,7 +180,7 @@ final class GLsync
 
     public function pointer(): int {}
 
-    public static function fromPointer(int $pointer): static {}
+    public static function fromPointer(int $pointer): ?static {}
 }
 
 /**
@@ -310,23 +321,27 @@ const GL_WAIT_FAILED = UNKNOWN;
  */
 const GL_BUFFER_SIZE = UNKNOWN;
 
-function glGenVertexArrays(int $n): array {}
+/** $arrays is the list of $n names GL writes. */
+function glGenVertexArrays(int $n, ?array &$arrays): void {}
 
 function glBindVertexArray(int $array): void {}
 
-function glDeleteVertexArrays(array $arrays): void {}
+/** $arrays is a list of ints: GL reads $n of them. */
+function glDeleteVertexArrays(int $n, array $arrays): void {}
 
-function glGenBuffers(int $n): array {}
+/** $buffers is the list of $n names GL writes. */
+function glGenBuffers(int $n, ?array &$buffers): void {}
 
 function glBindBuffer(int $target, int $buffer): void {}
 
-/** A string must hold $size bytes. An address other than 0 is trusted. Null passes NULL. */
+/** A string must hold $size bytes. An address is trusted; null and 0 are NULL. */
 function glBufferData(int $target, int $size, string|int|null $data, int $usage): void {}
 
-/** A string must hold $size bytes. An address other than 0 is trusted. */
+/** A string must hold $size bytes. An address is trusted; 0, which GL reads, is refused. */
 function glBufferSubData(int $target, int $offset, int $size, string|int $data): void {}
 
-function glDeleteBuffers(array $buffers): void {}
+/** $buffers is a list of ints: GL reads $n of them. */
+function glDeleteBuffers(int $n, array $buffers): void {}
 
 function glEnableVertexAttribArray(int $index): void {}
 
@@ -334,7 +349,7 @@ function glDisableVertexAttribArray(int $index): void {}
 
 function glVertexAttribPointer(int $index, int $size, int $type, bool $normalized, int $stride, int $pointer): void {}
 
-/** The mapped address, or 0 when GL fails. Bytes for PHP come from glReadPixels. */
+/** The mapped address, or 0 when GL fails. */
 function glMapBufferRange(int $target, int $offset, int $length, int $access): int {}
 
 function glUnmapBuffer(int $target): bool {}
@@ -585,25 +600,31 @@ const GL_DRAW_FRAMEBUFFER_BINDING = UNKNOWN;
  */
 const GL_READ_FRAMEBUFFER_BINDING = UNKNOWN;
 
-function glGenTextures(int $n): array {}
+/** $textures is the list of $n names GL writes. */
+function glGenTextures(int $n, ?array &$textures): void {}
 
 function glBindTexture(int $target, int $texture): void {}
 
-/** A string must hold the bytes GL reads from the unpack state. An address other than 0 is trusted. Null passes NULL. */
+/** A string must hold the bytes GL reads under the unpack state. An address is trusted; null and 0 are NULL. */
 function glTexImage2D(int $target, int $level, int $internalformat, int $width, int $height, int $border, int $format, int $type, string|int|null $pixels): void {}
 
-/** A string must hold the bytes GL reads from the unpack state. An address other than 0 is trusted. */
+/**
+ * A string must hold the bytes GL reads under the unpack state. An address is trusted, or an offset into
+ * the bound pixel-unpack buffer; 0 with no such buffer, which GL reads, is refused.
+ */
 function glTexSubImage2D(int $target, int $level, int $xoffset, int $yoffset, int $width, int $height, int $format, int $type, string|int $pixels): void {}
 
 function glTexParameteri(int $target, int $pname, int $param): void {}
 
 function glActiveTexture(int $texture): void {}
 
-function glDeleteTextures(array $textures): void {}
+/** $textures is a list of ints: GL reads $n of them. */
+function glDeleteTextures(int $n, array $textures): void {}
 
 function glPixelStorei(int $pname, int $param): void {}
 
-function glGenFramebuffers(int $n): array {}
+/** $framebuffers is the list of $n names GL writes. */
+function glGenFramebuffers(int $n, ?array &$framebuffers): void {}
 
 function glBindFramebuffer(int $target, int $framebuffer): void {}
 
@@ -611,9 +632,11 @@ function glFramebufferTexture2D(int $target, int $attachment, int $textarget, in
 
 function glCheckFramebufferStatus(int $target): int {}
 
-function glDeleteFramebuffers(array $framebuffers): void {}
+/** $framebuffers is a list of ints: GL reads $n of them. */
+function glDeleteFramebuffers(int $n, array $framebuffers): void {}
 
-function glGenRenderbuffers(int $n): array {}
+/** $renderbuffers is the list of $n names GL writes. */
+function glGenRenderbuffers(int $n, ?array &$renderbuffers): void {}
 
 function glBindRenderbuffer(int $target, int $renderbuffer): void {}
 
@@ -623,16 +646,21 @@ function glRenderbufferStorageMultisample(int $target, int $samples, int $intern
 
 function glFramebufferRenderbuffer(int $target, int $attachment, int $renderbuffertarget, int $renderbuffer): void {}
 
-function glDeleteRenderbuffers(array $renderbuffers): void {}
+/** $renderbuffers is a list of ints: GL reads $n of them. */
+function glDeleteRenderbuffers(int $n, array $renderbuffers): void {}
 
 function glBlitFramebuffer(int $srcX0, int $srcY0, int $srcX1, int $srcY1, int $dstX0, int $dstY0, int $dstX1, int $dstY1, int $mask, int $filter): void {}
 
-function glDrawBuffers(array $bufs): void {}
+/** $bufs is a list of ints: GL reads $n of them. */
+function glDrawBuffers(int $n, array $bufs): void {}
 
 function glReadBuffer(int $src): void {}
 
-/** Null answers the packed bytes. An int is an address, or an offset into the bound pixel-pack buffer (0 is a valid offset only then). */
-function glReadPixels(int $x, int $y, int $width, int $height, int $format, int $type, ?int $pixels): ?string {}
+/**
+ * $pixels is the address GL writes to, or an offset into the bound pixel-pack buffer. Null is 0, which
+ * GL writes to with no such buffer: refused then.
+ */
+function glReadPixels(int $x, int $y, int $width, int $height, int $format, int $type, ?int $pixels): void {}
 
 /**
  * @var int

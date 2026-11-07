@@ -81,6 +81,11 @@ it('names a colour space and HDR10 metadata on a window surface where the displa
     glfwDestroyWindow($window);
 })->skip(MAC || ! extension_loaded('glfw') || getenv('WAYLAND_DISPLAY') === false, 'needs Linux, ext-glfw and the Wayland session');
 
-it('answers 0 for a wl_egl_window on no surface', function (): void {
-    expect(wl_egl_window_create(0, 8, 8))->toBe(0);
+it('calls wayland-egl as given: a size of 0 makes no window, surface 0 makes one', function (): void {
+    $window = wl_egl_window_create(0, 8, 8);
+
+    expect(wl_egl_window_create(0, 0, 8))->toBe(0)
+        ->and($window)->not->toBe(0)
+        ->and(fn () => wl_egl_window_destroy(0))->toThrow(ValueError::class, 'must not be address 0');
+    wl_egl_window_destroy($window);
 })->skip(MAC, 'EGL is the Linux build');

@@ -1,5 +1,5 @@
 /* This is a generated file, edit the .stub.php file instead.
- * Stub hash: 2229472cffcc056754f36f673ebeb1138602ff9a */
+ * Stub hash: db20b069dd13566a071ff2b37034e14fcccfd0d7 */
 
 ZEND_BEGIN_ARG_WITH_RETURN_OBJ_INFO_EX(arginfo_eglGetDisplay, 0, 1, EGLDisplay, 1)
 	ZEND_ARG_TYPE_INFO(0, display_id, IS_LONG, 1)
@@ -124,10 +124,11 @@ ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_eglQuerySurface, 0, 4, _IS_BOOL,
 	ZEND_ARG_TYPE_INFO(1, value, IS_LONG, 1)
 ZEND_END_ARG_INFO()
 
-ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_eglSwapBuffersWithDamageKHR, 0, 3, _IS_BOOL, 0)
+ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_eglSwapBuffersWithDamageKHR, 0, 4, _IS_BOOL, 0)
 	ZEND_ARG_OBJ_INFO(0, display, EGLDisplay, 0)
 	ZEND_ARG_OBJ_INFO(0, surface, EGLSurface, 0)
 	ZEND_ARG_TYPE_INFO(0, rects, IS_ARRAY, 0)
+	ZEND_ARG_TYPE_INFO(0, n_rects, IS_LONG, 0)
 ZEND_END_ARG_INFO()
 
 #define arginfo_eglSwapBuffers arginfo_eglDestroySurface
@@ -145,7 +146,7 @@ ZEND_END_ARG_INFO()
 
 #define arginfo_class_EGLDisplay_pointer arginfo_eglGetError
 
-ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_EGLDisplay_fromPointer, 0, 1, IS_STATIC, 0)
+ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_EGLDisplay_fromPointer, 0, 1, IS_STATIC, 1)
 	ZEND_ARG_TYPE_INFO(0, pointer, IS_LONG, 0)
 ZEND_END_ARG_INFO()
 
@@ -266,7 +267,6 @@ static const zend_function_entry class_EGLSurface_methods[] = {
 
 static void register_EGL_symbols(int module_number)
 {
-	REGISTER_LONG_CONSTANT("EGL_DEFAULT_DISPLAY", 0, CONST_PERSISTENT);
 	REGISTER_LONG_CONSTANT("EGL_PLATFORM_SURFACELESS_MESA", EGL_PLATFORM_SURFACELESS_MESA, CONST_PERSISTENT);
 	REGISTER_LONG_CONSTANT("EGL_NONE", EGL_NONE, CONST_PERSISTENT);
 	REGISTER_LONG_CONSTANT("EGL_SUCCESS", EGL_SUCCESS, CONST_PERSISTENT);

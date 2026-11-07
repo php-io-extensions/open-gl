@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-/** RGBA8 pixel at (x, y) of an 8-wide glReadPixels result: row 0 is the BOTTOM row in GL. */
+/** RGBA8 pixel at (x, y) of an 8-wide glReadPixels read: row 0 is the BOTTOM row in GL. */
 function pixelAt(string $bytes, int $x, int $y): string
 {
     return bin2hex(substr($bytes, ($y * 8 + $x) * 4, 4));
@@ -13,8 +13,10 @@ it('fills a triangle by stencil-then-cover into a 4x framebuffer, resolves with 
     $program = flatProgram();
 
     // The multisampled target: 4x RGBA8 + 4x depth-stencil renderbuffers.
-    [$color, $stencil] = glGenRenderbuffers(2);
-    [$msaa, $resolvedFramebuffer] = glGenFramebuffers(2);
+    glGenRenderbuffers(2, $renderbuffers);
+    glGenFramebuffers(2, $framebuffers);
+    [$color, $stencil] = $renderbuffers;
+    [$msaa, $resolvedFramebuffer] = $framebuffers;
     glBindFramebuffer(GL_FRAMEBUFFER, $msaa);
     glBindRenderbuffer(GL_RENDERBUFFER, $color);
     glRenderbufferStorageMultisample(GL_RENDERBUFFER, 4, GL_RGBA8, 8, 8);
@@ -24,15 +26,18 @@ it('fills a triangle by stencil-then-cover into a 4x framebuffer, resolves with 
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, $stencil);
 
     // The resolve target: one sample, a texture.
-    [$resolved] = glGenTextures(1);
+    glGenTextures(1, $textures);
+    [$resolved] = $textures;
     glBindTexture(GL_TEXTURE_2D, $resolved);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 8, 8, 0, GL_RGBA, GL_UNSIGNED_BYTE, null);
     glBindFramebuffer(GL_FRAMEBUFFER, $resolvedFramebuffer);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, $resolved, 0);
 
     // The triangle (-1,-1), (1,-1), (-1,1), then a cover quad as two triangles.
-    [$vao] = glGenVertexArrays(1);
-    [$vbo] = glGenBuffers(1);
+    glGenVertexArrays(1, $arrays);
+    glGenBuffers(2, $buffers);
+    [$vao] = $arrays;
+    [$vbo, $pack] = $buffers;
     glBindVertexArray($vao);
     glBindBuffer(GL_ARRAY_BUFFER, $vbo);
     glBufferData(GL_ARRAY_BUFFER, 72, pack('g18', -1.0, -1.0, 1.0, -1.0, -1.0, 1.0,   -1.0, -1.0, 1.0, -1.0, -1.0, 1.0, -1.0, 1.0, 1.0, -1.0, 1.0, 1.0), GL_STATIC_DRAW);
@@ -65,10 +70,9 @@ it('fills a triangle by stencil-then-cover into a 4x framebuffer, resolves with 
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, $resolvedFramebuffer);
     glBlitFramebuffer(0, 0, 8, 8, 0, 0, 8, 8, GL_COLOR_BUFFER_BIT, GL_NEAREST);
     glBindFramebuffer(GL_READ_FRAMEBUFFER, $resolvedFramebuffer);
-    $pixels = glReadPixels(0, 0, 8, 8, GL_RGBA, GL_UNSIGNED_BYTE, null);
+    $pixels = readPixels(0, 0, 8, 8, GL_RGBA, GL_UNSIGNED_BYTE, 256);
 
-    // The same read into a pixel-pack buffer, fenced, mapped: the pipe's path.
-    [$pack] = glGenBuffers(1);
+    // The same read into a pixel-pack buffer, fenced, mapped.
     glBindBuffer(GL_PIXEL_PACK_BUFFER, $pack);
     glBufferData(GL_PIXEL_PACK_BUFFER, 256, null, GL_STREAM_READ);
     glReadPixels(0, 0, 8, 8, GL_RGBA, GL_UNSIGNED_BYTE, 0);
@@ -92,11 +96,11 @@ it('fills a triangle by stencil-then-cover into a 4x framebuffer, resolves with 
     glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glBindVertexArray(0);
-    glDeleteBuffers([$vbo, $pack]);
-    glDeleteVertexArrays([$vao]);
-    glDeleteFramebuffers([$msaa, $resolvedFramebuffer]);
-    glDeleteRenderbuffers([$color, $stencil]);
-    glDeleteTextures([$resolved]);
+    glDeleteBuffers(2, $buffers);
+    glDeleteVertexArrays(1, $arrays);
+    glDeleteFramebuffers(2, $framebuffers);
+    glDeleteRenderbuffers(2, $renderbuffers);
+    glDeleteTextures(1, $textures);
     glDeleteProgram($program);
 });
 

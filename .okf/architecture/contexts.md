@@ -39,7 +39,7 @@ Dropping the last PHP reference removes the identity-table entry and does not de
 OPENGL_REQUIRE_CONTEXT()
 ```
 
-opens every `gl*` function. It calls `CGLGetCurrentContext()` or `eglGetCurrentContext()`. When that is null it throws `Error` "`name(): no current OpenGL context`" and returns. CGL and EGL functions themselves do not require a current context.
+opens every `gl*` function. On macOS it calls `CGLGetCurrentContext()`; when that is null it throws `Error` "`name(): no current OpenGL context`" and returns (site `opengl-no-context`: Apple's GL dereferences the current context). On Linux it is empty: libglvnd answers a call with no context with nothing. CGL and EGL functions themselves do not require a current context.
 
 [^contexts]: cgl.c and egl.c
 [^measured]: src/egl.c

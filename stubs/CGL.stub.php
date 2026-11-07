@@ -3,7 +3,7 @@
 /** @generate-class-entries */
 
 /**
- * An address other than 0 is trusted: the binding does not check that it points at a live object.
+ * pointer() is 0 once released; fromPointer(0) is null. Any other address is trusted.
  *
  * @not-serializable
  */
@@ -13,11 +13,11 @@ final class CGLPixelFormatObj
 
     public function pointer(): int {}
 
-    public static function fromPointer(int $pointer): static {}
+    public static function fromPointer(int $pointer): ?static {}
 }
 
 /**
- * An address other than 0 is trusted: the binding does not check that it points at a live object.
+ * pointer() is 0 once released; fromPointer(0) is null. Any other address is trusted.
  *
  * @not-serializable
  */
@@ -27,7 +27,7 @@ final class CGLContextObj
 
     public function pointer(): int {}
 
-    public static function fromPointer(int $pointer): static {}
+    public static function fromPointer(int $pointer): ?static {}
 }
 
 /**
@@ -99,7 +99,7 @@ const kCGLNoError = UNKNOWN;
 /** $attribs is a list of ints ending with 0. */
 function CGLChoosePixelFormat(array $attribs, ?CGLPixelFormatObj &$pix, ?int &$npix): int {}
 
-function CGLDestroyPixelFormat(CGLPixelFormatObj $pix): void {}
+function CGLDestroyPixelFormat(CGLPixelFormatObj $pix): int {}
 
 function CGLCreateContext(CGLPixelFormatObj $pix, ?CGLContextObj $share, ?CGLContextObj &$ctx): int {}
 
@@ -109,9 +109,9 @@ function CGLSetCurrentContext(?CGLContextObj $ctx): int {}
 
 function CGLGetCurrentContext(): ?CGLContextObj {}
 
-function CGLErrorString(int $error): string {}
+function CGLErrorString(int $error): ?string {}
 
 function CGLFlushDrawable(CGLContextObj $ctx): int {}
 
-/** $params must hold as many ints as $pname reads. kCGLCPSwapInterval reads one. */
+/** $params is a list of ints, as many as $pname reads (kCGLCPSwapInterval reads one). An empty list is NULL. */
 function CGLSetParameter(CGLContextObj $ctx, int $pname, array $params): int {}

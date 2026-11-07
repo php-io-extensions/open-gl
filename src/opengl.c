@@ -31,6 +31,9 @@ PHP_MINIT_FUNCTION(opengl)
 #endif
 	opengl_register_gl_state(module_number);
 	opengl_register_gl_buffer(module_number);
+#ifdef OPENGL_PROBES
+	REGISTER_BOOL_CONSTANT("OPENGL_PROBES", true, CONST_PERSISTENT);
+#endif
 
 	return SUCCESS;
 }

@@ -1,31 +1,28 @@
 #include "runtime.h"
 
-static zend_string *opengl_info_log(GLuint object, bool shader)
+/* glGetShaderInfoLog / glGetProgramInfoLog: GL writes at most bufSize bytes, NUL included, into a
+ * buffer of that size; length is what it wrote without the NUL, infoLog those bytes. */
+static void opengl_info_log(INTERNAL_FUNCTION_PARAMETERS, void (*get)(GLuint, GLsizei, GLsizei *, GLchar *))
 {
-	GLint length = 0;
+	zend_long object, buf_size;
+	zval *length_zv, *log_zv;
 	GLsizei written = 0;
 	char *buf;
-	zend_string *text;
 
-	if (shader) {
-		glGetShaderiv(object, GL_INFO_LOG_LENGTH, &length);
-	} else {
-		glGetProgramiv(object, GL_INFO_LOG_LENGTH, &length);
-	}
-	if (length <= 1) {
-		return zend_string_init("", 0, 0);
-	}
+	ZEND_PARSE_PARAMETERS_START(4, 4)
+		Z_PARAM_LONG(object)
+		Z_PARAM_LONG(buf_size)
+		Z_PARAM_ZVAL(length_zv)
+		Z_PARAM_ZVAL(log_zv)
+	ZEND_PARSE_PARAMETERS_END();
 
-	buf = emalloc((size_t) length);
-	if (shader) {
-		glGetShaderInfoLog(object, length, &written, buf);
-	} else {
-		glGetProgramInfoLog(object, length, &written, buf);
+	buf = emalloc((GLsizei) buf_size > 0 ? (size_t) (GLsizei) buf_size : 1);
+	get((GLuint) object, (GLsizei) buf_size, &written, buf);
+	ZEND_TRY_ASSIGN_REF_LONG(length_zv, (zend_long) written);
+	if (!EG(exception)) {
+		ZEND_TRY_ASSIGN_REF_STRINGL(log_zv, buf, written > 0 ? (size_t) written : 0);
 	}
-	text = zend_string_init(buf, written > 0 ? (size_t) written : 0, 0);
 	efree(buf);
-
-	return text;
 }
 
 static bool opengl_assign_int(zval *dest, GLint value)
@@ -49,46 +46,59 @@ ZEND_FUNCTION(glCreateShader)
 
 ZEND_FUNCTION(glShaderSource)
 {
-	zend_long shader;
-	HashTable *strings;
-	uint32_t n, i = 0;
+	zend_long shader, count;
+	HashTable *strings, *length = NULL;
+	uint32_t n, i = 0, held;
 	zval *zv;
+	zend_string **held_strings = NULL;
 	const GLchar **ptrs = NULL;
-	GLint *lengths = NULL;
+	int *lengths = NULL;
 
 	OPENGL_REQUIRE_CONTEXT();
 
-	ZEND_PARSE_PARAMETERS_START(2, 2)
+	ZEND_PARSE_PARAMETERS_START(4, 4)
 		Z_PARAM_LONG(shader)
+		Z_PARAM_LONG(count)
 		Z_PARAM_ARRAY_HT(strings)
+		Z_PARAM_ARRAY_HT_OR_NULL(length)
 	ZEND_PARSE_PARAMETERS_END();
 
 	n = zend_hash_num_elements(strings);
+	if (!opengl_list_count(count, n, 2, 3)
+		|| (length != NULL && !opengl_list_count(count, zend_hash_num_elements(length), 2, 4))) {
+		RETURN_THROWS();
+	}
+	if (!opengl_int_list(length, 4, &lengths)) {
+		RETURN_THROWS();
+	}
+
+	/* Each element as PHP converts it to a string; PHP raises its own error for one that does not convert. */
 	if (n > 0) {
-		ptrs = emalloc(sizeof(GLchar *) * n);
-		lengths = emalloc(sizeof(GLint) * n);
+		ptrs = safe_emalloc(n, sizeof(GLchar *), 0);
+		held_strings = safe_emalloc(n, sizeof(zend_string *), 0);
 		ZEND_HASH_FOREACH_VAL(strings, zv) {
-			if (Z_TYPE_P(zv) != IS_STRING) {
-				efree(ptrs);
-				efree(lengths);
-				zend_argument_type_error(2, "must be a list of strings");
-				RETURN_THROWS();
+			held_strings[i] = zval_try_get_string(zv);
+			if (held_strings[i] == NULL) {
+				break;
 			}
-			if (ZSTR_LEN(Z_STR_P(zv)) > (size_t) INT_MAX) {
-				efree(ptrs);
-				efree(lengths);
-				zend_argument_value_error(2, "must hold at most %d bytes a string", INT_MAX);
-				RETURN_THROWS();
-			}
-			ptrs[i] = ZSTR_VAL(Z_STR_P(zv));
-			lengths[i] = (GLint) ZSTR_LEN(Z_STR_P(zv));
+			ptrs[i] = ZSTR_VAL(held_strings[i]);
 			i++;
 		} ZEND_HASH_FOREACH_END();
 	}
+	held = i;
 
-	glShaderSource((GLuint) shader, (GLsizei) n, ptrs, lengths);
+	/* A null $length: GL reads each string to its NUL, which every PHP string ends with. */
+	if (!EG(exception)) {
+		glShaderSource((GLuint) shader, (GLsizei) count, ptrs, (const GLint *) lengths);
+	}
+	for (i = 0; i < held; i++) {
+		zend_string_release(held_strings[i]);
+	}
 	if (ptrs != NULL) {
 		efree(ptrs);
+		efree(held_strings);
+	}
+	if (lengths != NULL) {
 		efree(lengths);
 	}
 }
@@ -128,15 +138,8 @@ ZEND_FUNCTION(glGetShaderiv)
 
 ZEND_FUNCTION(glGetShaderInfoLog)
 {
-	zend_long shader;
-
 	OPENGL_REQUIRE_CONTEXT();
-
-	ZEND_PARSE_PARAMETERS_START(1, 1)
-		Z_PARAM_LONG(shader)
-	ZEND_PARSE_PARAMETERS_END();
-
-	RETURN_STR(opengl_info_log((GLuint) shader, true));
+	opengl_info_log(INTERNAL_FUNCTION_PARAM_PASSTHRU, glGetShaderInfoLog);
 }
 
 ZEND_FUNCTION(glDeleteShader)
@@ -224,15 +227,8 @@ ZEND_FUNCTION(glGetProgramiv)
 
 ZEND_FUNCTION(glGetProgramInfoLog)
 {
-	zend_long program;
-
 	OPENGL_REQUIRE_CONTEXT();
-
-	ZEND_PARSE_PARAMETERS_START(1, 1)
-		Z_PARAM_LONG(program)
-	ZEND_PARSE_PARAMETERS_END();
-
-	RETURN_STR(opengl_info_log((GLuint) program, false));
+	opengl_info_log(INTERNAL_FUNCTION_PARAM_PASSTHRU, glGetProgramInfoLog);
 }
 
 ZEND_FUNCTION(glUseProgram)
@@ -356,7 +352,7 @@ ZEND_FUNCTION(glUniform4f)
 
 ZEND_FUNCTION(glUniformMatrix4fv)
 {
-	zend_long location;
+	zend_long location, count;
 	bool transpose;
 	HashTable *value;
 	uint32_t n, i = 0;
@@ -365,34 +361,28 @@ ZEND_FUNCTION(glUniformMatrix4fv)
 
 	OPENGL_REQUIRE_CONTEXT();
 
-	ZEND_PARSE_PARAMETERS_START(3, 3)
+	ZEND_PARSE_PARAMETERS_START(4, 4)
 		Z_PARAM_LONG(location)
+		Z_PARAM_LONG(count)
 		Z_PARAM_BOOL(transpose)
 		Z_PARAM_ARRAY_HT(value)
 	ZEND_PARSE_PARAMETERS_END();
 
+	/* GL reads 16 floats a matrix. */
 	n = zend_hash_num_elements(value);
-	if ((n % 16) != 0) {
-		zend_argument_value_error(3, "must be a multiple of 16");
+	if (!opengl_list_count(count, n / 16, 2, 4)) {
 		RETURN_THROWS();
 	}
 
+	/* Each element as PHP's (float) converts it. */
 	if (n > 0) {
-		matrix = emalloc(sizeof(GLfloat) * n);
+		matrix = safe_emalloc(n, sizeof(GLfloat), 0);
 		ZEND_HASH_FOREACH_VAL(value, zv) {
-			if (Z_TYPE_P(zv) == IS_DOUBLE) {
-				matrix[i++] = (GLfloat) Z_DVAL_P(zv);
-			} else if (Z_TYPE_P(zv) == IS_LONG) {
-				matrix[i++] = (GLfloat) Z_LVAL_P(zv);
-			} else {
-				efree(matrix);
-				zend_argument_type_error(3, "must be a list of floats");
-				RETURN_THROWS();
-			}
+			matrix[i++] = (GLfloat) zval_get_double(zv);
 		} ZEND_HASH_FOREACH_END();
 	}
 
-	glUniformMatrix4fv((GLint) location, (GLsizei) (n / 16), transpose ? GL_TRUE : GL_FALSE, matrix);
+	glUniformMatrix4fv((GLint) location, (GLsizei) count, transpose ? GL_TRUE : GL_FALSE, matrix);
 	if (matrix != NULL) {
 		efree(matrix);
 	}

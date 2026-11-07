@@ -1,5 +1,5 @@
 /* This is a generated file, edit the .stub.php file instead.
- * Stub hash: a69bfa139156e256db51e3ce5814e4f963976082 */
+ * Stub hash: 933f753008b0c82e21aef7c00aa88f5698d78356 */
 
 ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_glGetError, 0, 0, IS_LONG, 0)
 ZEND_END_ARG_INFO()
@@ -22,9 +22,11 @@ ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_glCreateShader, 0, 1, IS_LONG, 0
 	ZEND_ARG_TYPE_INFO(0, type, IS_LONG, 0)
 ZEND_END_ARG_INFO()
 
-ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_glShaderSource, 0, 2, IS_VOID, 0)
+ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_glShaderSource, 0, 4, IS_VOID, 0)
 	ZEND_ARG_TYPE_INFO(0, shader, IS_LONG, 0)
-	ZEND_ARG_TYPE_INFO(0, strings, IS_ARRAY, 0)
+	ZEND_ARG_TYPE_INFO(0, count, IS_LONG, 0)
+	ZEND_ARG_TYPE_INFO(0, string, IS_ARRAY, 0)
+	ZEND_ARG_TYPE_INFO(0, length, IS_ARRAY, 1)
 ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_glCompileShader, 0, 1, IS_VOID, 0)
@@ -37,8 +39,11 @@ ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_glGetShaderiv, 0, 3, IS_VOID, 0)
 	ZEND_ARG_TYPE_INFO(1, params, IS_LONG, 1)
 ZEND_END_ARG_INFO()
 
-ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_glGetShaderInfoLog, 0, 1, IS_STRING, 0)
+ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_glGetShaderInfoLog, 0, 4, IS_VOID, 0)
 	ZEND_ARG_TYPE_INFO(0, shader, IS_LONG, 0)
+	ZEND_ARG_TYPE_INFO(0, bufSize, IS_LONG, 0)
+	ZEND_ARG_TYPE_INFO(1, length, IS_LONG, 1)
+	ZEND_ARG_TYPE_INFO(1, infoLog, IS_STRING, 1)
 ZEND_END_ARG_INFO()
 
 #define arginfo_glDeleteShader arginfo_glCompileShader
@@ -66,8 +71,11 @@ ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_glGetProgramiv, 0, 3, IS_VOID, 0
 	ZEND_ARG_TYPE_INFO(1, params, IS_LONG, 1)
 ZEND_END_ARG_INFO()
 
-ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_glGetProgramInfoLog, 0, 1, IS_STRING, 0)
+ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_glGetProgramInfoLog, 0, 4, IS_VOID, 0)
 	ZEND_ARG_TYPE_INFO(0, program, IS_LONG, 0)
+	ZEND_ARG_TYPE_INFO(0, bufSize, IS_LONG, 0)
+	ZEND_ARG_TYPE_INFO(1, length, IS_LONG, 1)
+	ZEND_ARG_TYPE_INFO(1, infoLog, IS_STRING, 1)
 ZEND_END_ARG_INFO()
 
 #define arginfo_glUseProgram arginfo_glLinkProgram
@@ -105,25 +113,31 @@ ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_glUniform4f, 0, 5, IS_VOID, 0)
 	ZEND_ARG_TYPE_INFO(0, v3, IS_DOUBLE, 0)
 ZEND_END_ARG_INFO()
 
-ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_glUniformMatrix4fv, 0, 3, IS_VOID, 0)
+ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_glUniformMatrix4fv, 0, 4, IS_VOID, 0)
 	ZEND_ARG_TYPE_INFO(0, location, IS_LONG, 0)
+	ZEND_ARG_TYPE_INFO(0, count, IS_LONG, 0)
 	ZEND_ARG_TYPE_INFO(0, transpose, _IS_BOOL, 0)
 	ZEND_ARG_TYPE_INFO(0, value, IS_ARRAY, 0)
 ZEND_END_ARG_INFO()
 
-ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_glGenVertexArrays, 0, 1, IS_ARRAY, 0)
+ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_glGenVertexArrays, 0, 2, IS_VOID, 0)
 	ZEND_ARG_TYPE_INFO(0, n, IS_LONG, 0)
+	ZEND_ARG_TYPE_INFO(1, arrays, IS_ARRAY, 1)
 ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_glBindVertexArray, 0, 1, IS_VOID, 0)
 	ZEND_ARG_TYPE_INFO(0, array, IS_LONG, 0)
 ZEND_END_ARG_INFO()
 
-ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_glDeleteVertexArrays, 0, 1, IS_VOID, 0)
+ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_glDeleteVertexArrays, 0, 2, IS_VOID, 0)
+	ZEND_ARG_TYPE_INFO(0, n, IS_LONG, 0)
 	ZEND_ARG_TYPE_INFO(0, arrays, IS_ARRAY, 0)
 ZEND_END_ARG_INFO()
 
-#define arginfo_glGenBuffers arginfo_glGenVertexArrays
+ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_glGenBuffers, 0, 2, IS_VOID, 0)
+	ZEND_ARG_TYPE_INFO(0, n, IS_LONG, 0)
+	ZEND_ARG_TYPE_INFO(1, buffers, IS_ARRAY, 1)
+ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_glBindBuffer, 0, 2, IS_VOID, 0)
 	ZEND_ARG_TYPE_INFO(0, target, IS_LONG, 0)
@@ -144,7 +158,8 @@ ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_glBufferSubData, 0, 4, IS_VOID, 
 	ZEND_ARG_TYPE_MASK(0, data, MAY_BE_STRING|MAY_BE_LONG, NULL)
 ZEND_END_ARG_INFO()
 
-ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_glDeleteBuffers, 0, 1, IS_VOID, 0)
+ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_glDeleteBuffers, 0, 2, IS_VOID, 0)
+	ZEND_ARG_TYPE_INFO(0, n, IS_LONG, 0)
 	ZEND_ARG_TYPE_INFO(0, buffers, IS_ARRAY, 0)
 ZEND_END_ARG_INFO()
 
@@ -189,7 +204,10 @@ ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_glDeleteSync, 0, 1, IS_VOID, 0)
 	ZEND_ARG_OBJ_INFO(0, sync, GLsync, 0)
 ZEND_END_ARG_INFO()
 
-#define arginfo_glGenTextures arginfo_glGenVertexArrays
+ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_glGenTextures, 0, 2, IS_VOID, 0)
+	ZEND_ARG_TYPE_INFO(0, n, IS_LONG, 0)
+	ZEND_ARG_TYPE_INFO(1, textures, IS_ARRAY, 1)
+ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_glBindTexture, 0, 2, IS_VOID, 0)
 	ZEND_ARG_TYPE_INFO(0, target, IS_LONG, 0)
@@ -230,7 +248,8 @@ ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_glActiveTexture, 0, 1, IS_VOID, 
 	ZEND_ARG_TYPE_INFO(0, texture, IS_LONG, 0)
 ZEND_END_ARG_INFO()
 
-ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_glDeleteTextures, 0, 1, IS_VOID, 0)
+ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_glDeleteTextures, 0, 2, IS_VOID, 0)
+	ZEND_ARG_TYPE_INFO(0, n, IS_LONG, 0)
 	ZEND_ARG_TYPE_INFO(0, textures, IS_ARRAY, 0)
 ZEND_END_ARG_INFO()
 
@@ -239,7 +258,10 @@ ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_glPixelStorei, 0, 2, IS_VOID, 0)
 	ZEND_ARG_TYPE_INFO(0, param, IS_LONG, 0)
 ZEND_END_ARG_INFO()
 
-#define arginfo_glGenFramebuffers arginfo_glGenVertexArrays
+ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_glGenFramebuffers, 0, 2, IS_VOID, 0)
+	ZEND_ARG_TYPE_INFO(0, n, IS_LONG, 0)
+	ZEND_ARG_TYPE_INFO(1, framebuffers, IS_ARRAY, 1)
+ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_glBindFramebuffer, 0, 2, IS_VOID, 0)
 	ZEND_ARG_TYPE_INFO(0, target, IS_LONG, 0)
@@ -258,11 +280,15 @@ ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_glCheckFramebufferStatus, 0, 1, 
 	ZEND_ARG_TYPE_INFO(0, target, IS_LONG, 0)
 ZEND_END_ARG_INFO()
 
-ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_glDeleteFramebuffers, 0, 1, IS_VOID, 0)
+ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_glDeleteFramebuffers, 0, 2, IS_VOID, 0)
+	ZEND_ARG_TYPE_INFO(0, n, IS_LONG, 0)
 	ZEND_ARG_TYPE_INFO(0, framebuffers, IS_ARRAY, 0)
 ZEND_END_ARG_INFO()
 
-#define arginfo_glGenRenderbuffers arginfo_glGenVertexArrays
+ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_glGenRenderbuffers, 0, 2, IS_VOID, 0)
+	ZEND_ARG_TYPE_INFO(0, n, IS_LONG, 0)
+	ZEND_ARG_TYPE_INFO(1, renderbuffers, IS_ARRAY, 1)
+ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_glBindRenderbuffer, 0, 2, IS_VOID, 0)
 	ZEND_ARG_TYPE_INFO(0, target, IS_LONG, 0)
@@ -291,7 +317,8 @@ ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_glFramebufferRenderbuffer, 0, 4,
 	ZEND_ARG_TYPE_INFO(0, renderbuffer, IS_LONG, 0)
 ZEND_END_ARG_INFO()
 
-ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_glDeleteRenderbuffers, 0, 1, IS_VOID, 0)
+ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_glDeleteRenderbuffers, 0, 2, IS_VOID, 0)
+	ZEND_ARG_TYPE_INFO(0, n, IS_LONG, 0)
 	ZEND_ARG_TYPE_INFO(0, renderbuffers, IS_ARRAY, 0)
 ZEND_END_ARG_INFO()
 
@@ -308,7 +335,8 @@ ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_glBlitFramebuffer, 0, 10, IS_VOI
 	ZEND_ARG_TYPE_INFO(0, filter, IS_LONG, 0)
 ZEND_END_ARG_INFO()
 
-ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_glDrawBuffers, 0, 1, IS_VOID, 0)
+ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_glDrawBuffers, 0, 2, IS_VOID, 0)
+	ZEND_ARG_TYPE_INFO(0, n, IS_LONG, 0)
 	ZEND_ARG_TYPE_INFO(0, bufs, IS_ARRAY, 0)
 ZEND_END_ARG_INFO()
 
@@ -316,7 +344,7 @@ ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_glReadBuffer, 0, 1, IS_VOID, 0)
 	ZEND_ARG_TYPE_INFO(0, src, IS_LONG, 0)
 ZEND_END_ARG_INFO()
 
-ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_glReadPixels, 0, 7, IS_STRING, 1)
+ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_glReadPixels, 0, 7, IS_VOID, 0)
 	ZEND_ARG_TYPE_INFO(0, x, IS_LONG, 0)
 	ZEND_ARG_TYPE_INFO(0, y, IS_LONG, 0)
 	ZEND_ARG_TYPE_INFO(0, width, IS_LONG, 0)
@@ -422,7 +450,7 @@ ZEND_END_ARG_INFO()
 
 #define arginfo_class_GLsync_pointer arginfo_glGetError
 
-ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_GLsync_fromPointer, 0, 1, IS_STATIC, 0)
+ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_GLsync_fromPointer, 0, 1, IS_STATIC, 1)
 	ZEND_ARG_TYPE_INFO(0, pointer, IS_LONG, 0)
 ZEND_END_ARG_INFO()
 

@@ -3,7 +3,17 @@ PHP_ARG_ENABLE([opengl],
   [AS_HELP_STRING([--enable-opengl], [Enable the OpenGL / GLES bindings with CGL or EGL])],
   [no])
 
+PHP_ARG_ENABLE([opengl-probes],
+  [whether to build the opengl probe switch],
+  [AS_HELP_STRING([--enable-opengl-probes],
+    [Build the OPENGL_PROBE_OFF switch that tests/Probes drives: env OPENGL_PROBE_OFF=<site id> turns that kept refusal off. Never for a release build])],
+  [no],
+  [no])
+
 if test "$PHP_OPENGL" != "no"; then
+  if test "$PHP_OPENGL_PROBES" != "no"; then
+    AC_DEFINE([OPENGL_PROBES], [1], [Kept refusal sites can be turned off through env OPENGL_PROBE_OFF])
+  fi
   OPENGL_SOURCES="src/opengl.c src/runtime.c src/gl_state.c src/gl_program.c src/gl_buffer.c src/gl_texture.c src/gl_draw.c"
   case $host_os in
     darwin*)

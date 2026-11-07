@@ -2,11 +2,12 @@
 
 declare(strict_types=1);
 
-it('refuses a GL call with no current context', function (): void {
+it('refuses a GL call with no current context on macOS, where GL crashes, and makes it on Linux', function (): void {
     // A fresh process: this run makes a context current in whichever test file goes first.
-    $output = shell_exec(escapeshellarg(PHP_BINARY) . ' -r ' . escapeshellarg('try { glGetString(GL_VERSION); } catch (Error $e) { echo $e->getMessage(); }') . ' 2>&1');
+    $output = shell_exec(escapeshellarg(PHP_BINARY) . ' -d extension_dir=' . escapeshellarg(ini_get('extension_dir')) . ' -r ' . escapeshellarg('try { var_export(glGetString(GL_VERSION)); } catch (Error $e) { echo $e->getMessage(); }') . ' 2>&1');
 
-    expect($output)->toBe('glGetString(): no current OpenGL context');
+    // libglvnd answers a call with no context with nothing: glGetString's NULL.
+    expect($output)->toBe(MAC ? 'glGetString(): no current OpenGL context' : 'NULL');
 });
 
 it('makes an offscreen context of the platform\'s dialect current', function (): void {
@@ -29,19 +30,38 @@ it('fills as many integers as the query answers', function (): void {
         ->and($dims)->toHaveCount(2);
 });
 
-it('refuses an attribute list without its terminator', function (): void {
-    if (MAC) {
-        CGLChoosePixelFormat([kCGLPFAAccelerated], $pixelFormat, $count);
-    } else {
-        eglGetPlatformDisplay(EGL_PLATFORM_SURFACELESS_MESA, EGL_DEFAULT_DISPLAY, [EGL_WIDTH, 1]);
-    }
-})->throws(ValueError::class, 'must end with');
+it('refuses a CGL attribute list without its 0, which CGL reads past', function (): void {
+    expect(fn () => CGLChoosePixelFormat([kCGLPFAAccelerated], $pixelFormat, $count))->toThrow(ValueError::class, 'Argument #1 ($attribs) must end with 0')
+        ->and(fn () => CGLChoosePixelFormat([], $pixelFormat, $count))->toThrow(ValueError::class, 'must end with 0');
+})->skip(! MAC, 'CGL is the macOS build');
+
+it('passes an EGL attribute list to EGL as given, which stops at the attribute it does not take', function (): void {
+    $display = eglGetPlatformDisplay(EGL_PLATFORM_SURFACELESS_MESA, null, null);
+    eglInitialize($display, $major, $minor);
+
+    expect(eglChooseConfig($display, [EGL_RED_SIZE], $configs, 1, $count))->toBeFalse()
+        ->and(eglGetError())->toBe(0x3004); // EGL_BAD_ATTRIBUTE
+})->skip(MAC, 'EGL is the Linux build');
+
+it('passes released handles to CGL as NULL, which CGL answers with an error', function (): void {
+    CGLChoosePixelFormat([kCGLPFAAccelerated, 0], $pixelFormat, $count);
+    CGLCreateContext($pixelFormat, null, $context);
+    CGLDestroyPixelFormat($pixelFormat);
+    CGLReleaseContext($context);
+
+    expect($pixelFormat->pointer())->toBe(0)
+        ->and($context->pointer())->toBe(0)
+        ->and(CGLContextObj::fromPointer(0))->toBeNull()
+        ->and(CGLFlushDrawable($context))->not->toBe(kCGLNoError)
+        ->and(CGLCreateContext($pixelFormat, null, $none))->not->toBe(kCGLNoError)
+        ->and($none)->toBeNull();
+})->skip(! MAC, 'CGL is the macOS build');
 
 it('names CGL errors and EGL\'s client APIs', function (): void {
     if (MAC) {
         expect(CGLErrorString(kCGLNoError))->toBe('no error');
     } else {
-        $display = eglGetPlatformDisplay(EGL_PLATFORM_SURFACELESS_MESA, EGL_DEFAULT_DISPLAY, null);
+        $display = eglGetPlatformDisplay(EGL_PLATFORM_SURFACELESS_MESA, null, null);
         eglInitialize($display, $major, $minor);
         expect([$major, $minor])->toBe([1, 5])
             ->and(eglQueryString($display, EGL_CLIENT_APIS))->toContain('OpenGL_ES');
@@ -54,7 +74,7 @@ it('answers the display and surfaces current with an EGL context', function (): 
 
         return;
     }
-    $display = eglGetPlatformDisplay(EGL_PLATFORM_SURFACELESS_MESA, EGL_DEFAULT_DISPLAY, null);
+    $display = eglGetPlatformDisplay(EGL_PLATFORM_SURFACELESS_MESA, null, null);
     eglInitialize($display, $major, $minor);
     eglBindAPI(EGL_OPENGL_ES_API);
     eglChooseConfig($display, [EGL_RENDERABLE_TYPE, EGL_OPENGL_ES3_BIT, EGL_SURFACE_TYPE, EGL_PBUFFER_BIT, EGL_NONE], $configs, 1, $count);
@@ -80,7 +100,7 @@ it('answers the display and surfaces current with an EGL context', function (): 
 });
 
 it('queries a surface and sets the swap interval of the current context', function (): void {
-    $display = eglGetPlatformDisplay(EGL_PLATFORM_SURFACELESS_MESA, EGL_DEFAULT_DISPLAY, null);
+    $display = eglGetPlatformDisplay(EGL_PLATFORM_SURFACELESS_MESA, null, null);
     eglInitialize($display, $major, $minor);
     eglBindAPI(EGL_OPENGL_ES_API);
     eglChooseConfig($display, [EGL_RENDERABLE_TYPE, EGL_OPENGL_ES3_BIT, EGL_SURFACE_TYPE, EGL_PBUFFER_BIT, EGL_NONE], $configs, 1, $count);
@@ -125,9 +145,8 @@ it('swaps a window surface with only the damaged rects', function (): void {
     glClearColor(1.0, 0.0, 0.0, 1.0);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    expect(eglSwapBuffersWithDamageKHR($display, $surface, [0, 0, 16, 16, 32, 16, 8, 8]))->toBe($supported)
-        ->and(eglSwapBuffersWithDamageKHR($display, $surface, []))->toBe($supported)
-        ->and(fn () => eglSwapBuffersWithDamageKHR($display, $surface, [0, 0, 16]))->toThrow(ValueError::class, 'must hold four ints a rect, got 3 ints')
+    expect(eglSwapBuffersWithDamageKHR($display, $surface, [0, 0, 16, 16, 32, 16, 8, 8], 2))->toBe($supported)
+        ->and(eglSwapBuffersWithDamageKHR($display, $surface, [], 0))->toBe($supported)
         ->and($supported)->toBeTrue();
 
     glfwMakeContextCurrent(null);

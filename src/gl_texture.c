@@ -1,176 +1,159 @@
 #include "runtime.h"
 
-static bool opengl_names(zend_long n, void (*generate)(GLsizei, GLuint *), zval *return_value)
-{
-	GLuint *names;
-	zend_long i;
-
-	if (n < 0 || n > INT_MAX) {
-		zend_argument_value_error(1, "must be greater than or equal to 0");
-		return false;
-	}
-
-	names = ecalloc(n == 0 ? 1 : (size_t) n, sizeof(GLuint));
-	if (n > 0) {
-		generate((GLsizei) n, names);
-	}
-	array_init_size(return_value, (uint32_t) n);
-	for (i = 0; i < n; i++) {
-		add_next_index_long(return_value, (zend_long) names[i]);
-	}
-	efree(names);
-
-	return true;
-}
-
-static bool opengl_forget(HashTable *list, void (*destroy)(GLsizei, const GLuint *), uint32_t arg_num)
-{
-	uint32_t n = zend_hash_num_elements(list);
-	uint32_t i = 0;
-	GLuint *names = NULL;
-	zval *zv;
-
-	if (n > 0) {
-		names = emalloc(sizeof(GLuint) * n);
-		ZEND_HASH_FOREACH_VAL(list, zv) {
-			if (Z_TYPE_P(zv) != IS_LONG || Z_LVAL_P(zv) < 0 || Z_LVAL_P(zv) > (zend_long) UINT32_MAX) {
-				efree(names);
-				if (Z_TYPE_P(zv) != IS_LONG) {
-					zend_argument_type_error(arg_num, "must be a list of ints");
-				} else {
-					zend_argument_value_error(arg_num, "must be greater than or equal to 0");
-				}
-				return false;
-			}
-			names[i++] = (GLuint) Z_LVAL_P(zv);
-		} ZEND_HASH_FOREACH_END();
-	}
-
-	destroy((GLsizei) n, names);
-	if (names != NULL) {
-		efree(names);
-	}
-
-	return true;
-}
-
+/* Bytes a pixel of format/type takes, from the GL 4.1 and ES 3.0 pixel tables. False for a pair
+ * neither table has: GL answers GL_INVALID_ENUM or GL_INVALID_OPERATION and reads nothing. */
 static bool opengl_pixel_bytes(GLenum format, GLenum type, size_t *bytes)
 {
-	if (type == GL_UNSIGNED_BYTE && format == GL_RGBA) {
-		*bytes = 4;
-		return true;
-	}
-	if (type == GL_UNSIGNED_BYTE && format == GL_RGB) {
-		*bytes = 3;
-		return true;
-	}
-	if (type == GL_UNSIGNED_BYTE && format == GL_RED) {
-		*bytes = 1;
-		return true;
-	}
-	if (type == GL_HALF_FLOAT && format == GL_RGBA) {
-		*bytes = 8;
-		return true;
-	}
-	if (type == GL_UNSIGNED_INT_2_10_10_10_REV && format == GL_RGBA) {
-		*bytes = 4;
-		return true;
-	}
-	if (type == GL_FLOAT && format == GL_RGBA) {
-		*bytes = 16;
-		return true;
+	size_t components, size;
+
+	switch (type) {
+#ifdef GL_UNSIGNED_BYTE_3_3_2
+		case GL_UNSIGNED_BYTE_3_3_2:
+		case GL_UNSIGNED_BYTE_2_3_3_REV:
+			*bytes = 1;
+			return true;
+#endif
+		case GL_UNSIGNED_SHORT_5_6_5:
+		case GL_UNSIGNED_SHORT_4_4_4_4:
+		case GL_UNSIGNED_SHORT_5_5_5_1:
+#ifdef GL_UNSIGNED_SHORT_5_6_5_REV
+		case GL_UNSIGNED_SHORT_5_6_5_REV:
+		case GL_UNSIGNED_SHORT_4_4_4_4_REV:
+		case GL_UNSIGNED_SHORT_1_5_5_5_REV:
+#endif
+			*bytes = 2;
+			return true;
+		case GL_UNSIGNED_INT_2_10_10_10_REV:
+		case GL_UNSIGNED_INT_24_8:
+		case GL_UNSIGNED_INT_10F_11F_11F_REV:
+		case GL_UNSIGNED_INT_5_9_9_9_REV:
+#ifdef GL_UNSIGNED_INT_8_8_8_8
+		case GL_UNSIGNED_INT_8_8_8_8:
+		case GL_UNSIGNED_INT_8_8_8_8_REV:
+		case GL_UNSIGNED_INT_10_10_10_2:
+#endif
+			*bytes = 4;
+			return true;
+		case GL_FLOAT_32_UNSIGNED_INT_24_8_REV:
+			*bytes = 8;
+			return true;
+		case GL_UNSIGNED_BYTE:
+		case GL_BYTE:
+			size = 1;
+			break;
+		case GL_UNSIGNED_SHORT:
+		case GL_SHORT:
+		case GL_HALF_FLOAT:
+			size = 2;
+			break;
+		case GL_UNSIGNED_INT:
+		case GL_INT:
+		case GL_FLOAT:
+			size = 4;
+			break;
+		default:
+			return false;
 	}
 
-	return false;
+	switch (format) {
+		case GL_RED:
+		case GL_RED_INTEGER:
+		case GL_DEPTH_COMPONENT:
+#ifdef GL_STENCIL_INDEX
+		case GL_STENCIL_INDEX:
+		case GL_GREEN:
+		case GL_BLUE:
+#endif
+#ifdef GL_ALPHA
+		case GL_ALPHA:
+#endif
+#ifdef GL_LUMINANCE
+		case GL_LUMINANCE:
+#endif
+			components = 1;
+			break;
+		case GL_RG:
+		case GL_RG_INTEGER:
+		case GL_DEPTH_STENCIL:
+#ifdef GL_LUMINANCE_ALPHA
+		case GL_LUMINANCE_ALPHA:
+#endif
+			components = 2;
+			break;
+		case GL_RGB:
+		case GL_RGB_INTEGER:
+#ifdef GL_BGR
+		case GL_BGR:
+		case GL_BGR_INTEGER:
+#endif
+			components = 3;
+			break;
+		case GL_RGBA:
+		case GL_RGBA_INTEGER:
+#ifdef GL_BGRA
+		case GL_BGRA:
+#endif
+#ifdef GL_BGRA_INTEGER
+		case GL_BGRA_INTEGER:
+#endif
+			components = 4;
+			break;
+		default:
+			return false;
+	}
+
+	*bytes = components * size;
+	return true;
 }
 
-/* row length = ROW_LENGTH ?: width; stride = that times bytes, rounded up to ALIGNMENT;
- * required = SKIP_ROWS * stride + SKIP_PIXELS * bytes + stride * (height - 1) + width * bytes.
- * Unpack state for uploads, pack state for reads. */
-static bool opengl_image_bytes(GLenum format, GLenum type, zend_long width, zend_long height, bool unpack, size_t *required)
+/* Bytes GL reads for a width x height upload under the unpack state:
+ * row length = UNPACK_ROW_LENGTH ?: width; stride = that times the pixel, rounded up to UNPACK_ALIGNMENT;
+ * read = SKIP_ROWS * stride + SKIP_PIXELS * pixel + stride * (height - 1) + width * pixel.
+ * 0 when GL reads nothing: a size of 0 or below, or a format/type pair GL refuses. */
+static size_t opengl_upload_bytes(GLenum format, GLenum type, zend_long width, zend_long height)
 {
-	size_t pixel, columns, row, stride;
+	size_t pixel, stride;
 	GLint alignment = 4, row_length = 0, skip_rows = 0, skip_pixels = 0;
 
-	if (width < 0 || height < 0 || !opengl_pixel_bytes(format, type, &pixel)) {
-		return false;
+	if ((GLsizei) width <= 0 || (GLsizei) height <= 0 || !opengl_pixel_bytes(format, type, &pixel)) {
+		return 0;
 	}
 
-	if (unpack) {
-		glGetIntegerv(GL_UNPACK_ALIGNMENT, &alignment);
-		glGetIntegerv(GL_UNPACK_ROW_LENGTH, &row_length);
-		glGetIntegerv(GL_UNPACK_SKIP_ROWS, &skip_rows);
-		glGetIntegerv(GL_UNPACK_SKIP_PIXELS, &skip_pixels);
-	} else {
-		glGetIntegerv(GL_PACK_ALIGNMENT, &alignment);
-		glGetIntegerv(GL_PACK_ROW_LENGTH, &row_length);
-		glGetIntegerv(GL_PACK_SKIP_ROWS, &skip_rows);
-		glGetIntegerv(GL_PACK_SKIP_PIXELS, &skip_pixels);
-	}
+	glGetIntegerv(GL_UNPACK_ALIGNMENT, &alignment);
+	glGetIntegerv(GL_UNPACK_ROW_LENGTH, &row_length);
+	glGetIntegerv(GL_UNPACK_SKIP_ROWS, &skip_rows);
+	glGetIntegerv(GL_UNPACK_SKIP_PIXELS, &skip_pixels);
 	if (alignment < 1) {
 		alignment = 1;
 	}
 
-	columns = (size_t) (row_length > 0 ? row_length : width);
-	row = columns * pixel;
-	stride = ((row + (size_t) alignment - 1) / (size_t) alignment) * (size_t) alignment;
-	if (skip_rows < 0) {
-		skip_rows = 0;
-	}
-	if (skip_pixels < 0) {
-		skip_pixels = 0;
-	}
-	*required = height == 0 || width == 0 ? 0
-		: (size_t) skip_rows * stride + (size_t) skip_pixels * pixel + stride * (size_t) (height - 1) + (size_t) width * pixel;
+	stride = (size_t) (row_length > 0 ? row_length : (GLsizei) width) * pixel;
+	stride = (stride + (size_t) alignment - 1) / (size_t) alignment * (size_t) alignment;
 
-	return true;
+	return (size_t) (skip_rows > 0 ? skip_rows : 0) * stride + (size_t) (skip_pixels > 0 ? skip_pixels : 0) * pixel
+		+ stride * (size_t) ((GLsizei) height - 1) + (size_t) (GLsizei) width * pixel;
 }
 
-static bool opengl_upload(zend_string *bytes, zend_long address, bool is_null, bool allow_null, GLenum format, GLenum type, zend_long width, zend_long height, uint32_t arg_num, const void **out)
+static bool opengl_buffer_bound(GLenum binding)
 {
-	size_t need = 0;
+	GLint bound = 0;
 
-	if (bytes == NULL && is_null) {
-		if (!allow_null) {
-			zend_argument_type_error(arg_num, "must be of type string|int, null given");
-			return false;
-		}
-		*out = NULL;
-		return true;
-	}
-
-	if (bytes != NULL) {
-		if (!opengl_image_bytes(format, type, width, height, true, &need)) {
-			zend_argument_value_error(arg_num, "cannot size format 0x%x type 0x%x for a string; pass an address", (unsigned) format, (unsigned) type);
-			return false;
-		}
-		if (ZSTR_LEN(bytes) < need) {
-			zend_argument_value_error(arg_num, "must hold %zu bytes, %zu given", need, ZSTR_LEN(bytes));
-			return false;
-		}
-		*out = ZSTR_VAL(bytes);
-		return true;
-	}
-
-	if (address == 0) {
-		zend_argument_value_error(arg_num, "must not be a null address");
-		return false;
-	}
-
-	*out = (const void *) (uintptr_t) address;
-	return true;
+	glGetIntegerv(binding, &bound);
+	return bound != 0;
 }
 
 ZEND_FUNCTION(glGenTextures)
 {
 	zend_long n;
+	zval *textures;
 
 	OPENGL_REQUIRE_CONTEXT();
-	ZEND_PARSE_PARAMETERS_START(1, 1)
+	ZEND_PARSE_PARAMETERS_START(2, 2)
 		Z_PARAM_LONG(n)
+		Z_PARAM_ZVAL(textures)
 	ZEND_PARSE_PARAMETERS_END();
 
-	if (!opengl_names(n, glGenTextures, return_value)) {
+	if (!opengl_gen_names(n, textures, glGenTextures)) {
 		RETURN_THROWS();
 	}
 }
@@ -208,7 +191,8 @@ ZEND_FUNCTION(glTexImage2D)
 		Z_PARAM_STR_OR_LONG_OR_NULL(pixels, address, is_null)
 	ZEND_PARSE_PARAMETERS_END();
 
-	if (!opengl_upload(pixels, address, is_null, true, (GLenum) format, (GLenum) type, width, height, 9, &ptr)) {
+	/* NULL (null or 0) allocates the image without data. */
+	if (!opengl_source(pixels, address, pixels != NULL ? opengl_upload_bytes((GLenum) format, (GLenum) type, width, height) : 0, false, 9, &ptr)) {
 		RETURN_THROWS();
 	}
 
@@ -219,8 +203,8 @@ ZEND_FUNCTION(glTexSubImage2D)
 {
 	zend_long target, level, xoffset, yoffset, width, height, format, type, address = 0;
 	zend_string *pixels = NULL;
-	bool is_null = false;
 	const void *ptr;
+	size_t need;
 
 	OPENGL_REQUIRE_CONTEXT();
 	ZEND_PARSE_PARAMETERS_START(9, 9)
@@ -235,7 +219,8 @@ ZEND_FUNCTION(glTexSubImage2D)
 		Z_PARAM_STR_OR_LONG(pixels, address)
 	ZEND_PARSE_PARAMETERS_END();
 
-	if (!opengl_upload(pixels, address, is_null, false, (GLenum) format, (GLenum) type, width, height, 9, &ptr)) {
+	need = opengl_upload_bytes((GLenum) format, (GLenum) type, width, height);
+	if (!opengl_source(pixels, address, need, need > 0 && pixels == NULL && !opengl_buffer_bound(GL_PIXEL_UNPACK_BUFFER_BINDING), 9, &ptr)) {
 		RETURN_THROWS();
 	}
 
@@ -270,14 +255,16 @@ ZEND_FUNCTION(glActiveTexture)
 
 ZEND_FUNCTION(glDeleteTextures)
 {
+	zend_long n;
 	HashTable *textures;
 
 	OPENGL_REQUIRE_CONTEXT();
-	ZEND_PARSE_PARAMETERS_START(1, 1)
+	ZEND_PARSE_PARAMETERS_START(2, 2)
+		Z_PARAM_LONG(n)
 		Z_PARAM_ARRAY_HT(textures)
 	ZEND_PARSE_PARAMETERS_END();
 
-	if (!opengl_forget(textures, glDeleteTextures, 1)) {
+	if (!opengl_delete_names(n, textures, 2, glDeleteTextures)) {
 		RETURN_THROWS();
 	}
 }
@@ -298,13 +285,15 @@ ZEND_FUNCTION(glPixelStorei)
 ZEND_FUNCTION(glGenFramebuffers)
 {
 	zend_long n;
+	zval *framebuffers;
 
 	OPENGL_REQUIRE_CONTEXT();
-	ZEND_PARSE_PARAMETERS_START(1, 1)
+	ZEND_PARSE_PARAMETERS_START(2, 2)
 		Z_PARAM_LONG(n)
+		Z_PARAM_ZVAL(framebuffers)
 	ZEND_PARSE_PARAMETERS_END();
 
-	if (!opengl_names(n, glGenFramebuffers, return_value)) {
+	if (!opengl_gen_names(n, framebuffers, glGenFramebuffers)) {
 		RETURN_THROWS();
 	}
 }
@@ -352,14 +341,16 @@ ZEND_FUNCTION(glCheckFramebufferStatus)
 
 ZEND_FUNCTION(glDeleteFramebuffers)
 {
+	zend_long n;
 	HashTable *framebuffers;
 
 	OPENGL_REQUIRE_CONTEXT();
-	ZEND_PARSE_PARAMETERS_START(1, 1)
+	ZEND_PARSE_PARAMETERS_START(2, 2)
+		Z_PARAM_LONG(n)
 		Z_PARAM_ARRAY_HT(framebuffers)
 	ZEND_PARSE_PARAMETERS_END();
 
-	if (!opengl_forget(framebuffers, glDeleteFramebuffers, 1)) {
+	if (!opengl_delete_names(n, framebuffers, 2, glDeleteFramebuffers)) {
 		RETURN_THROWS();
 	}
 }
@@ -367,13 +358,15 @@ ZEND_FUNCTION(glDeleteFramebuffers)
 ZEND_FUNCTION(glGenRenderbuffers)
 {
 	zend_long n;
+	zval *renderbuffers;
 
 	OPENGL_REQUIRE_CONTEXT();
-	ZEND_PARSE_PARAMETERS_START(1, 1)
+	ZEND_PARSE_PARAMETERS_START(2, 2)
 		Z_PARAM_LONG(n)
+		Z_PARAM_ZVAL(renderbuffers)
 	ZEND_PARSE_PARAMETERS_END();
 
-	if (!opengl_names(n, glGenRenderbuffers, return_value)) {
+	if (!opengl_gen_names(n, renderbuffers, glGenRenderbuffers)) {
 		RETURN_THROWS();
 	}
 }
@@ -439,14 +432,16 @@ ZEND_FUNCTION(glFramebufferRenderbuffer)
 
 ZEND_FUNCTION(glDeleteRenderbuffers)
 {
+	zend_long n;
 	HashTable *renderbuffers;
 
 	OPENGL_REQUIRE_CONTEXT();
-	ZEND_PARSE_PARAMETERS_START(1, 1)
+	ZEND_PARSE_PARAMETERS_START(2, 2)
+		Z_PARAM_LONG(n)
 		Z_PARAM_ARRAY_HT(renderbuffers)
 	ZEND_PARSE_PARAMETERS_END();
 
-	if (!opengl_forget(renderbuffers, glDeleteRenderbuffers, 1)) {
+	if (!opengl_delete_names(n, renderbuffers, 2, glDeleteRenderbuffers)) {
 		RETURN_THROWS();
 	}
 }
@@ -474,14 +469,16 @@ ZEND_FUNCTION(glBlitFramebuffer)
 
 ZEND_FUNCTION(glDrawBuffers)
 {
+	zend_long n;
 	HashTable *bufs;
 
 	OPENGL_REQUIRE_CONTEXT();
-	ZEND_PARSE_PARAMETERS_START(1, 1)
+	ZEND_PARSE_PARAMETERS_START(2, 2)
+		Z_PARAM_LONG(n)
 		Z_PARAM_ARRAY_HT(bufs)
 	ZEND_PARSE_PARAMETERS_END();
 
-	if (!opengl_forget(bufs, (void (*)(GLsizei, const GLuint *)) glDrawBuffers, 1)) {
+	if (!opengl_delete_names(n, bufs, 2, (void (*)(GLsizei, const GLuint *)) glDrawBuffers)) {
 		RETURN_THROWS();
 	}
 }
@@ -501,10 +498,8 @@ ZEND_FUNCTION(glReadBuffer)
 ZEND_FUNCTION(glReadPixels)
 {
 	zend_long x, y, width, height, format, type, address = 0;
-	bool is_null = true;
-	GLint pack = 0;
-	size_t need = 0;
-	zend_string *out;
+	bool is_null = false;
+	const void *ptr;
 
 	OPENGL_REQUIRE_CONTEXT();
 	ZEND_PARSE_PARAMETERS_START(7, 7)
@@ -517,27 +512,10 @@ ZEND_FUNCTION(glReadPixels)
 		Z_PARAM_LONG_OR_NULL(address, is_null)
 	ZEND_PARSE_PARAMETERS_END();
 
-	glGetIntegerv(GL_PIXEL_PACK_BUFFER_BINDING, &pack);
-
-	if (is_null) {
-		if (pack != 0) {
-			zend_argument_value_error(7, "cannot read into a string while a pixel-pack buffer is bound");
-			RETURN_THROWS();
-		}
-		if (!opengl_image_bytes((GLenum) format, (GLenum) type, width, height, false, &need)) {
-			zend_argument_value_error(5, "cannot size format 0x%x type 0x%x for a string; pass an address", (unsigned) format, (unsigned) type);
-			RETURN_THROWS();
-		}
-		out = zend_string_alloc(need, 0);
-		glReadPixels((GLint) x, (GLint) y, (GLsizei) width, (GLsizei) height, (GLenum) format, (GLenum) type, ZSTR_VAL(out));
-		RETURN_STR(out);
-	}
-
-	if (address == 0 && pack == 0) {
-		zend_argument_value_error(7, "must not be a null address");
+	/* GL writes to address 0 unless a pixel-pack buffer takes it as an offset. */
+	if (!opengl_source(NULL, address, 0, (GLsizei) width > 0 && (GLsizei) height > 0 && !opengl_buffer_bound(GL_PIXEL_PACK_BUFFER_BINDING), 7, &ptr)) {
 		RETURN_THROWS();
 	}
 
-	glReadPixels((GLint) x, (GLint) y, (GLsizei) width, (GLsizei) height, (GLenum) format, (GLenum) type, (void *) (uintptr_t) address);
-	RETURN_NULL();
+	glReadPixels((GLint) x, (GLint) y, (GLsizei) width, (GLsizei) height, (GLenum) format, (GLenum) type, (void *) ptr);
 }

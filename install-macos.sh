@@ -8,6 +8,8 @@
 # For each PHP: phpize/configure/make against that PHP's php-config, copy the
 # .so into its extension_dir, re-sign it ad hoc so amfid accepts it on first
 # load, and enable it with 30-opengl.ini in its conf.d scan dir.
+#
+#   OPENGL_CONFIGURE="--enable-opengl-probes" ./install-macos.sh   # a probe build (tests/Probes)
 
 set -Eeuo pipefail
 
@@ -47,7 +49,7 @@ for PHP_BIN in "${PHP_BINS[@]}"; do
     done
     if ! (cd "$BUILD_DIR" \
         && "$PHPIZE" \
-        && ./configure --enable-opengl --with-php-config="$PHP_CONFIG" \
+        && ./configure --enable-opengl ${OPENGL_CONFIGURE:-} --with-php-config="$PHP_CONFIG" \
         && make -j"$(sysctl -n hw.ncpu)") >"${BUILD_DIR}/build.log" 2>&1; then
         tail -40 "${BUILD_DIR}/build.log" >&2
         die "Build failed for ${PHP_BIN}"

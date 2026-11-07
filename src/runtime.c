@@ -10,22 +10,13 @@ static zend_object *opengl_create_object(zend_class_entry *ce)
 	object_properties_init(&intern->std, ce);
 	intern->std.handlers = &opengl_handle_handlers;
 	intern->ptr = NULL;
-	ZVAL_UNDEF(&intern->keep);
 
 	return &intern->std;
 }
 
 static void opengl_free_object(zend_object *object)
 {
-	opengl_handle *intern = opengl_handle_from(object);
-
-	if (intern->ptr != NULL) {
-		zend_hash_index_del(&OPENGL_G(boxes), (zend_ulong) (uintptr_t) intern->ptr);
-		intern->ptr = NULL;
-	}
-
-	zval_ptr_dtor(&intern->keep);
-	ZVAL_UNDEF(&intern->keep);
+	opengl_release(object);
 	zend_object_std_dtor(object);
 }
 
@@ -46,21 +37,6 @@ void opengl_handle_setup(zend_class_entry *ce)
 	ce->ce_flags |= ZEND_ACC_NOT_SERIALIZABLE | ZEND_ACC_FINAL;
 }
 
-static void opengl_release_kept(opengl_handle *intern)
-{
-	if (Z_TYPE(intern->keep) == IS_ARRAY) {
-		zval *zv;
-
-		ZEND_HASH_FOREACH_VAL(Z_ARRVAL(intern->keep), zv) {
-			if (Z_TYPE_P(zv) == IS_OBJECT && Z_OBJ_P(zv)->handlers == &opengl_handle_handlers) {
-				opengl_release(Z_OBJ_P(zv));
-			}
-		} ZEND_HASH_FOREACH_END();
-	} else if (Z_TYPE(intern->keep) == IS_OBJECT && Z_OBJ(intern->keep)->handlers == &opengl_handle_handlers) {
-		opengl_release(Z_OBJ(intern->keep));
-	}
-}
-
 void opengl_release(zend_object *obj)
 {
 	opengl_handle *intern = opengl_handle_from(obj);
@@ -69,10 +45,6 @@ void opengl_release(zend_object *obj)
 		zend_hash_index_del(&OPENGL_G(boxes), (zend_ulong) (uintptr_t) intern->ptr);
 		intern->ptr = NULL;
 	}
-
-	opengl_release_kept(intern);
-	zval_ptr_dtor(&intern->keep);
-	ZVAL_UNDEF(&intern->keep);
 }
 
 void opengl_box(zval *rv, void *ptr, zend_class_entry *ce)
@@ -100,32 +72,6 @@ void opengl_box(zval *rv, void *ptr, zend_class_entry *ce)
 	zend_hash_index_update_ptr(&OPENGL_G(boxes), (zend_ulong) (uintptr_t) ptr, Z_OBJ_P(rv));
 }
 
-void *opengl_handle_ptr(zval *zv, zend_class_entry *ce, uint32_t arg_num)
-{
-	opengl_handle *intern;
-
-	if (Z_TYPE_P(zv) != IS_OBJECT || !instanceof_function(Z_OBJCE_P(zv), ce)) {
-		if (arg_num == 0) {
-			zend_type_error("must be an instance of %s", ZSTR_VAL(ce->name));
-		} else {
-			zend_argument_type_error(arg_num, "must be of type %s", ZSTR_VAL(ce->name));
-		}
-		return NULL;
-	}
-
-	intern = opengl_handle_from(Z_OBJ_P(zv));
-	if (intern->ptr == NULL) {
-		if (arg_num == 0) {
-			zend_value_error("%s has been destroyed", ZSTR_VAL(ce->name));
-		} else {
-			zend_argument_value_error(arg_num, "%s has been destroyed", ZSTR_VAL(ce->name));
-		}
-		return NULL;
-	}
-
-	return intern->ptr;
-}
-
 bool opengl_assign_handle(zval *dest, void *ptr, zend_class_entry *ce)
 {
 	zval obj;
@@ -136,45 +82,47 @@ bool opengl_assign_handle(zval *dest, void *ptr, zend_class_entry *ce)
 	return EG(exception) == NULL;
 }
 
-int *opengl_attrib_list(HashTable *list, int terminator, uint32_t arg_num, bool *failed)
+#ifdef OPENGL_PROBES
+bool opengl_probe_off(const char *id)
 {
-	uint32_t n, i = 0;
-	int *out;
+	const char *off = getenv("OPENGL_PROBE_OFF");
+
+	return off != NULL && strcmp(off, id) == 0;
+}
+#endif
+
+bool opengl_int_list(HashTable *list, uint32_t arg_num, int **out)
+{
+	uint32_t i = 0;
 	zval *zv;
 
-	*failed = false;
-	if (list == NULL) {
-		return NULL;
+	*out = NULL;
+	if (list == NULL || zend_hash_num_elements(list) == 0) {
+		return true;
 	}
 
-	n = zend_hash_num_elements(list);
-	if (n == 0) {
-		zend_argument_value_error(arg_num, "must end with %d", terminator);
-		*failed = true;
-		return NULL;
-	}
-
-	out = emalloc(sizeof(int) * n);
+	*out = safe_emalloc(zend_hash_num_elements(list), sizeof(int), 0);
 	ZEND_HASH_FOREACH_VAL(list, zv) {
-		if (Z_TYPE_P(zv) != IS_LONG || Z_LVAL_P(zv) > INT_MAX || Z_LVAL_P(zv) < INT_MIN) {
-			efree(out);
-			if (Z_TYPE_P(zv) != IS_LONG) {
-				zend_argument_type_error(arg_num, "must be a list of ints");
-			} else {
-				zend_argument_value_error(arg_num, "must fit in a 32-bit int");
-			}
-			*failed = true;
-			return NULL;
+		ZVAL_DEREF(zv);
+		if (Z_TYPE_P(zv) != IS_LONG) {
+			efree(*out);
+			*out = NULL;
+			zend_argument_type_error(arg_num, "must be a list of ints, %s found", zend_zval_value_name(zv));
+			return false;
 		}
-		out[i++] = (int) Z_LVAL_P(zv);
+		(*out)[i++] = (int) Z_LVAL_P(zv);
 	} ZEND_HASH_FOREACH_END();
 
-	if (out[n - 1] != terminator) {
-		efree(out);
-		zend_argument_value_error(arg_num, "must end with %d", terminator);
-		*failed = true;
-		return NULL;
+	return true;
+}
+
+bool opengl_list_count(zend_long count, uint32_t n, uint32_t count_arg, uint32_t list_arg)
+{
+	/* GL reads count elements of the C array built from the list. A negative count is GL_INVALID_VALUE, read by nothing. */
+	if (!OPENGL_PROBE_OFF("opengl-list-count") && count > 0 && (zend_ulong) count > n) {
+		zend_argument_value_error(count_arg, "must not pass the length of argument #%u ($%s)", list_arg, get_active_function_arg_name(list_arg)); /* binding:opengl-list-count */
+		return false;
 	}
 
-	return out;
+	return true;
 }

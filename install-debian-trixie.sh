@@ -162,7 +162,8 @@ if ! "$PHP_BIN_REAL" build/gen_stub.php stubs >>"$LOG_FILE" 2>&1; then
 fi
 # Prefer the distro Mesa (the measured EGL 1.5 / GLES 3) over a /usr/local build.
 export PKG_CONFIG_PATH="/usr/lib/$(gcc -dumpmachine)/pkgconfig${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
-if ! ./configure --enable-opengl "--with-php-config=${RESOLVED_PHP_CONFIG}" >>"$LOG_FILE" 2>&1; then
+# OPENGL_CONFIGURE="--enable-opengl-probes" makes a probe build (tests/Probes); never ship one.
+if ! ./configure --enable-opengl ${OPENGL_CONFIGURE:-} "--with-php-config=${RESOLVED_PHP_CONFIG}" >>"$LOG_FILE" 2>&1; then
     show_failure_logs
     die "configure failed. See ${LOG_FILE}."
 fi

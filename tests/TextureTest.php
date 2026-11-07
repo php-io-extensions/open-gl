@@ -2,52 +2,47 @@
 
 declare(strict_types=1);
 
-/** An 8x8 texture-backed framebuffer, bound as both read and draw. */
+/** A texture-backed framebuffer, bound as both read and draw. */
 function textureFramebuffer(int $width = 8, int $height = 8): array
 {
     glContext();
-    [$texture] = glGenTextures(1);
-    glBindTexture(GL_TEXTURE_2D, $texture);
+    glGenTextures(1, $textures);
+    glBindTexture(GL_TEXTURE_2D, $textures[0]);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, $width, $height, 0, GL_RGBA, GL_UNSIGNED_BYTE, null);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    [$framebuffer] = glGenFramebuffers(1);
-    glBindFramebuffer(GL_FRAMEBUFFER, $framebuffer);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, $texture, 0);
+    glGenFramebuffers(1, $framebuffers);
+    glBindFramebuffer(GL_FRAMEBUFFER, $framebuffers[0]);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, $textures[0], 0);
 
-    return [$framebuffer, $texture];
+    return [$framebuffers[0], $textures[0]];
 }
 
-it('uploads into a texture and reads the framebuffer back as a string', function (): void {
+it('uploads into a texture and reads the framebuffer back into an address', function (): void {
     [$framebuffer, $texture] = textureFramebuffer(4, 2);
     $bytes = random_bytes(32);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 4, 2, GL_RGBA, GL_UNSIGNED_BYTE, $bytes);
 
     expect(glCheckFramebufferStatus(GL_FRAMEBUFFER))->toBe(GL_FRAMEBUFFER_COMPLETE)
-        ->and(glReadPixels(0, 0, 4, 2, GL_RGBA, GL_UNSIGNED_BYTE, null))->toBe($bytes);
+        ->and(readPixels(0, 0, 4, 2, GL_RGBA, GL_UNSIGNED_BYTE, 32))->toBe($bytes);
 
-    glDeleteFramebuffers([$framebuffer]);
-    glDeleteTextures([$texture]);
+    glDeleteFramebuffers(1, [$framebuffer]);
+    glDeleteTextures(1, [$texture]);
 });
 
 it('sizes strings by the pixel-store alignment and row length', function (): void {
     [$framebuffer, $texture] = textureFramebuffer(3, 2);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 8);
-    glPixelStorei(GL_PACK_ALIGNMENT, 8);
     // 3 RGB pixels = 9 bytes a row, padded to 16: 16 + 9 = 25 bytes for two rows.
     expect(fn () => glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 3, 2, GL_RGB, GL_UNSIGNED_BYTE, str_repeat("\0", 24)))->toThrow(ValueError::class, 'must hold 25 bytes, 24 given');
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 3, 2, GL_RGB, GL_UNSIGNED_BYTE, str_repeat("\x7f", 25));
     // OpenGL ES rejects GL_RGB into a sized GL_RGBA8 texture. Desktop GL accepts it.
-    // The binding already let the 25-byte string through; drop the driver error so it cannot fail a later glGetError().
+    // The 25-byte string went through; drop GL's error so it cannot fail a later glGetError().
     glGetError();
 
-    // RGBA reads of 3 pixels: 12 bytes a row, padded to 16: 16 + 12 = 28.
-    expect(strlen(glReadPixels(0, 0, 3, 2, GL_RGBA, GL_UNSIGNED_BYTE, null)))->toBe(28);
-
     glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
-    glPixelStorei(GL_PACK_ALIGNMENT, 4);
-    glDeleteFramebuffers([$framebuffer]);
-    glDeleteTextures([$texture]);
+    glDeleteFramebuffers(1, [$framebuffer]);
+    glDeleteTextures(1, [$texture]);
 });
 
 it('sizes strings by the pixel-store skips too', function (): void {
@@ -60,82 +55,109 @@ it('sizes strings by the pixel-store skips too', function (): void {
     glPixelStorei(GL_UNPACK_SKIP_ROWS, 0);
     glPixelStorei(GL_UNPACK_SKIP_PIXELS, 0);
 
-    glPixelStorei(GL_PACK_SKIP_ROWS, 1);
-    glPixelStorei(GL_PACK_SKIP_PIXELS, 2);
-    $read = glReadPixels(0, 0, 3, 2, GL_RGBA, GL_UNSIGNED_BYTE, null);
-    glPixelStorei(GL_PACK_SKIP_ROWS, 0);
-    glPixelStorei(GL_PACK_SKIP_PIXELS, 0);
-
-    expect(strlen($read))->toBe(44)
-        ->and(substr($read, 20))->toBe(str_repeat("\x11\x22\x33\x44", 6))
+    expect(readPixels(0, 0, 3, 2, GL_RGBA, GL_UNSIGNED_BYTE, 24))->toBe(str_repeat("\x11\x22\x33\x44", 6))
         ->and(glGetError())->toBe(GL_NO_ERROR);
-    glDeleteFramebuffers([$framebuffer]);
-    glDeleteTextures([$texture]);
+    glDeleteFramebuffers(1, [$framebuffer]);
+    glDeleteTextures(1, [$texture]);
 });
 
-it('reads pixels into an address', function (): void {
+it('sizes every format and type pair of the pixel tables', function (int $format, int $type, int $bytes): void {
+    [$framebuffer, $texture] = textureFramebuffer(2, 2);
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    $need = 4 * $bytes;
+
+    expect(fn () => glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 2, 2, $format, $type, str_repeat("\0", $need - 1)))
+        ->toThrow(ValueError::class, "must hold {$need} bytes");
+
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+    glDeleteFramebuffers(1, [$framebuffer]);
+    glDeleteTextures(1, [$texture]);
+})->with([
+    'RGBA bytes' => [GL_RGBA, GL_UNSIGNED_BYTE, 4],
+    'RGB bytes' => [GL_RGB, GL_UNSIGNED_BYTE, 3],
+    'RED bytes' => [GL_RED, GL_UNSIGNED_BYTE, 1],
+    'RG bytes' => [0x8227, GL_UNSIGNED_BYTE, 2],
+    'RGBA half floats' => [GL_RGBA, GL_HALF_FLOAT, 8],
+    'RGBA floats' => [GL_RGBA, GL_FLOAT, 16],
+    'RGBA 10-bit' => [GL_RGBA, GL_UNSIGNED_INT_2_10_10_10_REV, 4],
+    'RGB 565' => [GL_RGB, 0x8363, 2],
+]);
+
+it('passes a format and type pair GL refuses to GL, which reads nothing', function (): void {
+    [$framebuffer, $texture] = textureFramebuffer(2, 2);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 2, 2, GL_RGBA, 0x1234, 'x');
+
+    expect(glGetError())->toBe(0x0500); // GL_INVALID_ENUM
+    glDeleteFramebuffers(1, [$framebuffer]);
+    glDeleteTextures(1, [$texture]);
+});
+
+it('refuses address 0 where GL reads it, and takes it where GL does not', function (): void {
     [$framebuffer, $texture] = textureFramebuffer(4, 2);
-    $bytes = random_bytes(32);
-    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 4, 2, GL_RGBA, GL_UNSIGNED_BYTE, $bytes);
-    $target = new FbBuffer(new FbFormat(FB_LAYOUT_RGBA8888, channelOrder: FB_CHANNELS_RGBA), 4, 2);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 4, 2, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
 
-    expect(glReadPixels(0, 0, 4, 2, GL_RGBA, GL_UNSIGNED_BYTE, $target->pointer()))->toBeNull()
-        ->and($target->bytes())->toBe($bytes);
+    expect(glGetError())->toBe(GL_NO_ERROR)
+        ->and(fn () => glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 4, 2, GL_RGBA, GL_UNSIGNED_BYTE, 0))->toThrow(ValueError::class, 'must not be address 0')
+        ->and(fn () => glReadPixels(0, 0, 4, 2, GL_RGBA, GL_UNSIGNED_BYTE, null))->toThrow(ValueError::class, 'must not be address 0');
 
-    glDeleteFramebuffers([$framebuffer]);
-    glDeleteTextures([$texture]);
-})->skip(! class_exists(FbBuffer::class), 'needs ext-fb for a native address');
+    glDeleteFramebuffers(1, [$framebuffer]);
+    glDeleteTextures(1, [$texture]);
+});
 
-it('refuses a string read while a pixel-pack buffer is bound', function (): void {
+it('takes 0 as an offset into a bound pixel-pack or pixel-unpack buffer', function (): void {
     [$framebuffer, $texture] = textureFramebuffer(4, 2);
-    [$pack] = glGenBuffers(1);
-    glBindBuffer(GL_PIXEL_PACK_BUFFER, $pack);
+    glGenBuffers(1, $buffers);
+    glBindBuffer(GL_PIXEL_PACK_BUFFER, $buffers[0]);
     glBufferData(GL_PIXEL_PACK_BUFFER, 32, null, GL_STREAM_READ);
 
     try {
-        expect(fn () => glReadPixels(0, 0, 4, 2, GL_RGBA, GL_UNSIGNED_BYTE, null))->toThrow(ValueError::class, 'pixel-pack buffer');
         glReadPixels(0, 0, 4, 2, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+        glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+        glBindBuffer(GL_PIXEL_UNPACK_BUFFER, $buffers[0]);
+        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 4, 2, GL_RGBA, GL_UNSIGNED_BYTE, 0);
         expect(glGetError())->toBe(GL_NO_ERROR);
     } finally {
         glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
-        glDeleteBuffers([$pack]);
-        glDeleteFramebuffers([$framebuffer]);
-        glDeleteTextures([$texture]);
+        glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+        glDeleteBuffers(1, $buffers);
+        glDeleteFramebuffers(1, [$framebuffer]);
+        glDeleteTextures(1, [$texture]);
     }
 });
 
 it('makes a complete 4x framebuffer of renderbuffers', function (): void {
     glContext();
-    [$color, $stencil] = glGenRenderbuffers(2);
-    [$framebuffer] = glGenFramebuffers(1);
-    glBindFramebuffer(GL_FRAMEBUFFER, $framebuffer);
+    glGenRenderbuffers(2, $renderbuffers);
+    [$color, $stencil] = $renderbuffers;
+    glGenFramebuffers(1, $framebuffers);
+    glBindFramebuffer(GL_FRAMEBUFFER, $framebuffers[0]);
     glBindRenderbuffer(GL_RENDERBUFFER, $color);
     glRenderbufferStorageMultisample(GL_RENDERBUFFER, 4, GL_RGBA8, 8, 8);
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, $color);
     glBindRenderbuffer(GL_RENDERBUFFER, $stencil);
     glRenderbufferStorageMultisample(GL_RENDERBUFFER, 4, GL_DEPTH24_STENCIL8, 8, 8);
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, $stencil);
-    glDrawBuffers([GL_COLOR_ATTACHMENT0]);
+    glDrawBuffers(1, [GL_COLOR_ATTACHMENT0]);
 
     expect(glCheckFramebufferStatus(GL_FRAMEBUFFER))->toBe(GL_FRAMEBUFFER_COMPLETE);
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glDeleteFramebuffers([$framebuffer]);
-    glDeleteRenderbuffers([$color, $stencil]);
+    glDeleteFramebuffers(1, $framebuffers);
+    glDeleteRenderbuffers(2, $renderbuffers);
 });
 
 it('makes half-float and 10-bit textures and reads half floats back', function (): void {
     glContext();
-    [$texture] = glGenTextures(1);
+    glGenTextures(2, $textures);
+    [$texture, $ten] = $textures;
     glBindTexture(GL_TEXTURE_2D, $texture);
     $two = pack('v4', 0x4000, 0x3C00, 0x3800, 0x3C00);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, 1, 1, 0, GL_RGBA, GL_HALF_FLOAT, $two);
-    [$fbo] = glGenFramebuffers(1);
-    glBindFramebuffer(GL_FRAMEBUFFER, $fbo);
+    glGenFramebuffers(1, $framebuffers);
+    glBindFramebuffer(GL_FRAMEBUFFER, $framebuffers[0]);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, $texture, 0);
     $complete = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-    $back = glReadPixels(0, 0, 1, 1, GL_RGBA, GL_HALF_FLOAT, null);
-    [$ten] = glGenTextures(1);
+    $back = readPixels(0, 0, 1, 1, GL_RGBA, GL_HALF_FLOAT, 8);
     glBindTexture(GL_TEXTURE_2D, $ten);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB10_A2, 1, 1, 0, GL_RGBA, GL_UNSIGNED_INT_2_10_10_10_REV, null);
 
@@ -143,6 +165,6 @@ it('makes half-float and 10-bit textures and reads half floats back', function (
         ->and($back)->toBe($two)
         ->and(glGetError())->toBe(GL_NO_ERROR);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glDeleteFramebuffers([$fbo]);
-    glDeleteTextures([$texture, $ten]);
+    glDeleteFramebuffers(1, $framebuffers);
+    glDeleteTextures(2, $textures);
 });

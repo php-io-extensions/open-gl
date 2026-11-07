@@ -3,7 +3,7 @@
 /** @generate-class-entries */
 
 /**
- * An address other than 0 is trusted: the binding does not check that it points at a live object.
+ * pointer() is 0 once released; fromPointer(0) is null. Any other address is trusted.
  * EGL owns the display; this handle is never released.
  *
  * @not-serializable
@@ -14,11 +14,11 @@ final class EGLDisplay
 
     public function pointer(): int {}
 
-    public static function fromPointer(int $pointer): static {}
+    public static function fromPointer(int $pointer): ?static {}
 }
 
 /**
- * An address other than 0 is trusted: the binding does not check that it points at a live object.
+ * pointer() is 0 once released; fromPointer(0) is null. Any other address is trusted.
  * EGL owns the config; this handle is never released.
  *
  * @not-serializable
@@ -29,11 +29,11 @@ final class EGLConfig
 
     public function pointer(): int {}
 
-    public static function fromPointer(int $pointer): static {}
+    public static function fromPointer(int $pointer): ?static {}
 }
 
 /**
- * An address other than 0 is trusted: the binding does not check that it points at a live object.
+ * pointer() is 0 once released; fromPointer(0) is null. Any other address is trusted.
  *
  * @not-serializable
  */
@@ -43,11 +43,11 @@ final class EGLContext
 
     public function pointer(): int {}
 
-    public static function fromPointer(int $pointer): static {}
+    public static function fromPointer(int $pointer): ?static {}
 }
 
 /**
- * An address other than 0 is trusted: the binding does not check that it points at a live object.
+ * pointer() is 0 once released; fromPointer(0) is null. Any other address is trusted.
  *
  * @not-serializable
  */
@@ -57,15 +57,9 @@ final class EGLSurface
 
     public function pointer(): int {}
 
-    public static function fromPointer(int $pointer): static {}
+    public static function fromPointer(int $pointer): ?static {}
 }
 
-/**
- * EGL_DEFAULT_DISPLAY is a null native display. The C macro is a pointer cast, so the PHP constant is 0.
- *
- * @var int
- */
-const EGL_DEFAULT_DISPLAY = 0;
 
 /**
  * @var int
@@ -399,7 +393,7 @@ const EGL_METADATA_SCALING_EXT = UNKNOWN;
 
 function eglGetDisplay(?int $display_id): ?EGLDisplay {}
 
-/** $attrib_list, when given, is a list of ints ending with EGL_NONE. Values are widened to EGLAttrib. */
+/** $attrib_list is null or a list of ints ending with EGL_NONE, each an EGLAttrib (pointer-wide). */
 function eglGetPlatformDisplay(int $platform, ?int $native_display, ?array $attrib_list): ?EGLDisplay {}
 
 function eglInitialize(EGLDisplay $display, ?int &$major, ?int &$minor): bool {}
@@ -408,7 +402,7 @@ function eglTerminate(EGLDisplay $display): bool {}
 
 function eglBindAPI(int $api): bool {}
 
-/** $attrib_list, when given, is a list of ints ending with EGL_NONE. */
+/** $attrib_list is null or a list of ints ending with EGL_NONE. $configs is the list of at most $config_size configs EGL writes. */
 function eglChooseConfig(EGLDisplay $display, ?array $attrib_list, ?array &$configs, int $config_size, ?int &$num_config): bool {}
 
 /** $attrib_list, when given, is a list of ints ending with EGL_NONE. */
@@ -434,8 +428,10 @@ function eglSurfaceAttrib(EGLDisplay $display, EGLSurface $surface, int $attribu
 /** libwayland-egl: a wl_egl_window over the wl_surface at $surface; 0 when none is made. */
 function wl_egl_window_create(int $surface, int $width, int $height): int {}
 
+/** $window 0, which wayland-egl dereferences, is refused. */
 function wl_egl_window_resize(int $window, int $width, int $height, int $dx, int $dy): void {}
 
+/** $window 0, which wayland-egl dereferences, is refused. */
 function wl_egl_window_destroy(int $window): void {}
 
 function eglDestroySurface(EGLDisplay $display, EGLSurface $surface): bool {}
@@ -456,13 +452,10 @@ function eglSwapInterval(EGLDisplay $display, int $interval): bool {}
 function eglQuerySurface(EGLDisplay $display, EGLSurface $surface, int $attribute, ?int &$value): bool {}
 
 /**
- * EGL_KHR_swap_buffers_with_damage, through eglGetProcAddress: $rects is a flat list, four ints a rect
- * (x, y, width, height, origin bottom-left); an empty list damages the whole surface. False, with
- * nothing swapped, when $display does not list the extension.
- *
- * @throws ValueError When $rects is not a multiple of four ints.
+ * EGL_KHR_swap_buffers_with_damage, through eglGetProcAddress: $rects is a list of ints, four a rect
+ * (x, y, width, height, origin bottom-left), and EGL reads $n_rects rects; 0 damages the whole surface.
  */
-function eglSwapBuffersWithDamageKHR(EGLDisplay $display, EGLSurface $surface, array $rects): bool {}
+function eglSwapBuffersWithDamageKHR(EGLDisplay $display, EGLSurface $surface, array $rects, int $n_rects): bool {}
 
 function eglSwapBuffers(EGLDisplay $display, EGLSurface $surface): bool {}
 
