@@ -156,6 +156,10 @@ function glDeleteProgram(int $program): void {}
 
 function glGetUniformLocation(int $program, string $name): int {}
 
+function glGetUniformBlockIndex(int $program, string $uniformBlockName): int {}
+
+function glUniformBlockBinding(int $program, int $uniformBlockIndex, int $uniformBlockBinding): void {}
+
 function glGetAttribLocation(int $program, string $name): int {}
 
 function glUniform1i(int $location, int $v0): void {}
@@ -206,6 +210,66 @@ const GL_PIXEL_PACK_BUFFER = UNKNOWN;
  * @cvalue GL_PIXEL_UNPACK_BUFFER
  */
 const GL_PIXEL_UNPACK_BUFFER = UNKNOWN;
+
+/**
+ * @var int
+ * @cvalue GL_UNIFORM_BUFFER
+ */
+const GL_UNIFORM_BUFFER = UNKNOWN;
+
+/**
+ * @var int
+ * @cvalue GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT
+ */
+const GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT = UNKNOWN;
+
+/**
+ * @var int
+ * @cvalue GL_MAX_UNIFORM_BLOCK_SIZE
+ */
+const GL_MAX_UNIFORM_BLOCK_SIZE = UNKNOWN;
+
+/**
+ * @var int
+ * @cvalue GL_INVALID_INDEX
+ */
+const GL_INVALID_INDEX = UNKNOWN;
+
+/**
+ * @var int
+ * @cvalue GL_R8UI
+ */
+const GL_R8UI = UNKNOWN;
+
+/**
+ * @var int
+ * @cvalue GL_R32UI
+ */
+const GL_R32UI = UNKNOWN;
+
+/**
+ * @var int
+ * @cvalue GL_RED_INTEGER
+ */
+const GL_RED_INTEGER = UNKNOWN;
+
+/**
+ * @var int
+ * @cvalue GL_RG
+ */
+const GL_RG = UNKNOWN;
+
+/**
+ * @var int
+ * @cvalue GL_RG32F
+ */
+const GL_RG32F = UNKNOWN;
+
+/**
+ * @var int
+ * @cvalue GL_RGBA32F
+ */
+const GL_RGBA32F = UNKNOWN;
 
 /**
  * @var int
@@ -333,6 +397,8 @@ function glDeleteVertexArrays(int $n, array $arrays): void {}
 function glGenBuffers(int $n, ?array &$buffers): void {}
 
 function glBindBuffer(int $target, int $buffer): void {}
+
+function glBindBufferRange(int $target, int $index, int $buffer, int $offset, int $size): void {}
 
 /** A string must hold $size bytes. An address is trusted; null and 0 are NULL. */
 function glBufferData(int $target, int $size, string|int|null $data, int $usage): void {}

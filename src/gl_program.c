@@ -272,6 +272,36 @@ ZEND_FUNCTION(glGetUniformLocation)
 	RETURN_LONG((zend_long) glGetUniformLocation((GLuint) program, ZSTR_VAL(name)));
 }
 
+ZEND_FUNCTION(glGetUniformBlockIndex)
+{
+	zend_long program;
+	zend_string *name;
+
+	OPENGL_REQUIRE_CONTEXT();
+
+	ZEND_PARSE_PARAMETERS_START(2, 2)
+		Z_PARAM_LONG(program)
+		Z_PARAM_STR(name)
+	ZEND_PARSE_PARAMETERS_END();
+
+	RETURN_LONG((zend_long) glGetUniformBlockIndex((GLuint) program, ZSTR_VAL(name)));
+}
+
+ZEND_FUNCTION(glUniformBlockBinding)
+{
+	zend_long program, index, binding;
+
+	OPENGL_REQUIRE_CONTEXT();
+
+	ZEND_PARSE_PARAMETERS_START(3, 3)
+		Z_PARAM_LONG(program)
+		Z_PARAM_LONG(index)
+		Z_PARAM_LONG(binding)
+	ZEND_PARSE_PARAMETERS_END();
+
+	glUniformBlockBinding((GLuint) program, (GLuint) index, (GLuint) binding);
+}
+
 ZEND_FUNCTION(glGetAttribLocation)
 {
 	zend_long program;

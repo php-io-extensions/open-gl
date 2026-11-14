@@ -1,5 +1,5 @@
 /* This is a generated file, edit the .stub.php file instead.
- * Stub hash: 933f753008b0c82e21aef7c00aa88f5698d78356 */
+ * Stub hash: 1bf8a3d820eb80d9c9cd5a93d5dbd89b2c4797bb */
 
 ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_glGetError, 0, 0, IS_LONG, 0)
 ZEND_END_ARG_INFO()
@@ -87,6 +87,17 @@ ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_glGetUniformLocation, 0, 2, IS_L
 	ZEND_ARG_TYPE_INFO(0, name, IS_STRING, 0)
 ZEND_END_ARG_INFO()
 
+ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_glGetUniformBlockIndex, 0, 2, IS_LONG, 0)
+	ZEND_ARG_TYPE_INFO(0, program, IS_LONG, 0)
+	ZEND_ARG_TYPE_INFO(0, uniformBlockName, IS_STRING, 0)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_glUniformBlockBinding, 0, 3, IS_VOID, 0)
+	ZEND_ARG_TYPE_INFO(0, program, IS_LONG, 0)
+	ZEND_ARG_TYPE_INFO(0, uniformBlockIndex, IS_LONG, 0)
+	ZEND_ARG_TYPE_INFO(0, uniformBlockBinding, IS_LONG, 0)
+ZEND_END_ARG_INFO()
+
 #define arginfo_glGetAttribLocation arginfo_glGetUniformLocation
 
 ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_glUniform1i, 0, 2, IS_VOID, 0)
@@ -142,6 +153,14 @@ ZEND_END_ARG_INFO()
 ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_glBindBuffer, 0, 2, IS_VOID, 0)
 	ZEND_ARG_TYPE_INFO(0, target, IS_LONG, 0)
 	ZEND_ARG_TYPE_INFO(0, buffer, IS_LONG, 0)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_glBindBufferRange, 0, 5, IS_VOID, 0)
+	ZEND_ARG_TYPE_INFO(0, target, IS_LONG, 0)
+	ZEND_ARG_TYPE_INFO(0, index, IS_LONG, 0)
+	ZEND_ARG_TYPE_INFO(0, buffer, IS_LONG, 0)
+	ZEND_ARG_TYPE_INFO(0, offset, IS_LONG, 0)
+	ZEND_ARG_TYPE_INFO(0, size, IS_LONG, 0)
 ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_glBufferData, 0, 4, IS_VOID, 0)
@@ -474,6 +493,8 @@ ZEND_FUNCTION(glGetProgramInfoLog);
 ZEND_FUNCTION(glUseProgram);
 ZEND_FUNCTION(glDeleteProgram);
 ZEND_FUNCTION(glGetUniformLocation);
+ZEND_FUNCTION(glGetUniformBlockIndex);
+ZEND_FUNCTION(glUniformBlockBinding);
 ZEND_FUNCTION(glGetAttribLocation);
 ZEND_FUNCTION(glUniform1i);
 ZEND_FUNCTION(glUniform1f);
@@ -485,6 +506,7 @@ ZEND_FUNCTION(glBindVertexArray);
 ZEND_FUNCTION(glDeleteVertexArrays);
 ZEND_FUNCTION(glGenBuffers);
 ZEND_FUNCTION(glBindBuffer);
+ZEND_FUNCTION(glBindBufferRange);
 ZEND_FUNCTION(glBufferData);
 ZEND_FUNCTION(glBufferSubData);
 ZEND_FUNCTION(glDeleteBuffers);
@@ -563,6 +585,8 @@ static const zend_function_entry ext_functions[] = {
 	ZEND_FE(glUseProgram, arginfo_glUseProgram)
 	ZEND_FE(glDeleteProgram, arginfo_glDeleteProgram)
 	ZEND_FE(glGetUniformLocation, arginfo_glGetUniformLocation)
+	ZEND_FE(glGetUniformBlockIndex, arginfo_glGetUniformBlockIndex)
+	ZEND_FE(glUniformBlockBinding, arginfo_glUniformBlockBinding)
 	ZEND_FE(glGetAttribLocation, arginfo_glGetAttribLocation)
 	ZEND_FE(glUniform1i, arginfo_glUniform1i)
 	ZEND_FE(glUniform1f, arginfo_glUniform1f)
@@ -574,6 +598,7 @@ static const zend_function_entry ext_functions[] = {
 	ZEND_FE(glDeleteVertexArrays, arginfo_glDeleteVertexArrays)
 	ZEND_FE(glGenBuffers, arginfo_glGenBuffers)
 	ZEND_FE(glBindBuffer, arginfo_glBindBuffer)
+	ZEND_FE(glBindBufferRange, arginfo_glBindBufferRange)
 	ZEND_FE(glBufferData, arginfo_glBufferData)
 	ZEND_FE(glBufferSubData, arginfo_glBufferSubData)
 	ZEND_FE(glDeleteBuffers, arginfo_glDeleteBuffers)
@@ -660,6 +685,16 @@ static void register_gl_symbols(int module_number)
 	REGISTER_LONG_CONSTANT("GL_ELEMENT_ARRAY_BUFFER", GL_ELEMENT_ARRAY_BUFFER, CONST_PERSISTENT);
 	REGISTER_LONG_CONSTANT("GL_PIXEL_PACK_BUFFER", GL_PIXEL_PACK_BUFFER, CONST_PERSISTENT);
 	REGISTER_LONG_CONSTANT("GL_PIXEL_UNPACK_BUFFER", GL_PIXEL_UNPACK_BUFFER, CONST_PERSISTENT);
+	REGISTER_LONG_CONSTANT("GL_UNIFORM_BUFFER", GL_UNIFORM_BUFFER, CONST_PERSISTENT);
+	REGISTER_LONG_CONSTANT("GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT", GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT, CONST_PERSISTENT);
+	REGISTER_LONG_CONSTANT("GL_MAX_UNIFORM_BLOCK_SIZE", GL_MAX_UNIFORM_BLOCK_SIZE, CONST_PERSISTENT);
+	REGISTER_LONG_CONSTANT("GL_INVALID_INDEX", GL_INVALID_INDEX, CONST_PERSISTENT);
+	REGISTER_LONG_CONSTANT("GL_R8UI", GL_R8UI, CONST_PERSISTENT);
+	REGISTER_LONG_CONSTANT("GL_R32UI", GL_R32UI, CONST_PERSISTENT);
+	REGISTER_LONG_CONSTANT("GL_RED_INTEGER", GL_RED_INTEGER, CONST_PERSISTENT);
+	REGISTER_LONG_CONSTANT("GL_RG", GL_RG, CONST_PERSISTENT);
+	REGISTER_LONG_CONSTANT("GL_RG32F", GL_RG32F, CONST_PERSISTENT);
+	REGISTER_LONG_CONSTANT("GL_RGBA32F", GL_RGBA32F, CONST_PERSISTENT);
 	REGISTER_LONG_CONSTANT("GL_STATIC_DRAW", GL_STATIC_DRAW, CONST_PERSISTENT);
 	REGISTER_LONG_CONSTANT("GL_DYNAMIC_DRAW", GL_DYNAMIC_DRAW, CONST_PERSISTENT);
 	REGISTER_LONG_CONSTANT("GL_STREAM_DRAW", GL_STREAM_DRAW, CONST_PERSISTENT);

@@ -35,3 +35,7 @@ Added the four pixel-store skip constants. Strings for uploads and reads are siz
 ## 2026-10-06
 
 Added `GL_DRAW_FRAMEBUFFER_BINDING` and `GL_READ_FRAMEBUFFER_BINDING`: a caller reads which framebuffer a toolkit bound before its render callback. Suite 24 tests on the Mac and the Pi.
+
+## 2026-11-14
+
+Bound uniform blocks: `glGetUniformBlockIndex`, `glUniformBlockBinding`, `glBindBufferRange`, with `GL_UNIFORM_BUFFER`, `GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT`, `GL_MAX_UNIFORM_BLOCK_SIZE` and `GL_INVALID_INDEX`. Added the integer and float texture constants `GL_R8UI`, `GL_R32UI`, `GL_RED_INTEGER`, `GL_RG`, `GL_RG32F`, `GL_RGBA32F`. All are in both GL 4.1 core and ES 3.0; `glTexBuffer` is not (ES 3.2), so it stays unbound. `tests/UniformBlockTest.php`: a block fed from a range at the offset alignment paints its colour, an R32UI texture reads back its exact words through a `usampler2D`, RG32F and RGBA32F texels read back as stored. Suite 47 passed, 25 skipped on Homebrew PHP 8.4 NTS and ZTS; not run on the Pi.

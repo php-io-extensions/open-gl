@@ -25,23 +25,23 @@ Constants: `GL_NO_ERROR`, `GL_VERSION`, `GL_RENDERER`, `GL_VENDOR`, `GL_SHADING_
 
 # Programs
 
-`glCreateShader`, `glShaderSource`, `glCompileShader`, `glGetShaderiv`, `glGetShaderInfoLog`, `glDeleteShader`, `glCreateProgram`, `glAttachShader`, `glBindAttribLocation`, `glLinkProgram`, `glGetProgramiv`, `glGetProgramInfoLog`, `glUseProgram`, `glDeleteProgram`, `glGetUniformLocation`, `glGetAttribLocation`, `glUniform1i`, `glUniform1f`, `glUniform2f`, `glUniform4f`, `glUniformMatrix4fv`.
+`glCreateShader`, `glShaderSource`, `glCompileShader`, `glGetShaderiv`, `glGetShaderInfoLog`, `glDeleteShader`, `glCreateProgram`, `glAttachShader`, `glBindAttribLocation`, `glLinkProgram`, `glGetProgramiv`, `glGetProgramInfoLog`, `glUseProgram`, `glDeleteProgram`, `glGetUniformLocation`, `glGetUniformBlockIndex`, `glUniformBlockBinding`, `glGetAttribLocation`, `glUniform1i`, `glUniform1f`, `glUniform2f`, `glUniform4f`, `glUniformMatrix4fv`.
 
-Constants: `GL_VERTEX_SHADER`, `GL_FRAGMENT_SHADER`, `GL_COMPILE_STATUS`, `GL_LINK_STATUS`, `GL_INFO_LOG_LENGTH`, `GL_TRUE`, `GL_FALSE`.
+Constants: `GL_VERTEX_SHADER`, `GL_FRAGMENT_SHADER`, `GL_COMPILE_STATUS`, `GL_LINK_STATUS`, `GL_INFO_LOG_LENGTH`, `GL_TRUE`, `GL_FALSE`, `GL_INVALID_INDEX` (what `glGetUniformBlockIndex` returns for a name the program has no block of).
 
 # Buffers
 
-`glGenVertexArrays`, `glBindVertexArray`, `glDeleteVertexArrays`, `glGenBuffers`, `glBindBuffer`, `glBufferData`, `glBufferSubData`, `glDeleteBuffers`, `glEnableVertexAttribArray`, `glDisableVertexAttribArray`, `glVertexAttribPointer`, `glMapBufferRange`, `glUnmapBuffer`, `glFenceSync`, `glClientWaitSync`, `glDeleteSync`.
+`glGenVertexArrays`, `glBindVertexArray`, `glDeleteVertexArrays`, `glGenBuffers`, `glBindBuffer`, `glBindBufferRange`, `glBufferData`, `glBufferSubData`, `glDeleteBuffers`, `glEnableVertexAttribArray`, `glDisableVertexAttribArray`, `glVertexAttribPointer`, `glMapBufferRange`, `glUnmapBuffer`, `glFenceSync`, `glClientWaitSync`, `glDeleteSync`.
 
 Handle: `GLsync`. `glGen*($n, &$names)` writes the list of names; `n < 0` is GL's `GL_INVALID_VALUE` and an empty list. `glDelete*($n, $names)` and `glDrawBuffers($n, $bufs)` take the count GL reads.
 
-Constants: `GL_ARRAY_BUFFER`, `GL_ELEMENT_ARRAY_BUFFER`, `GL_PIXEL_PACK_BUFFER`, `GL_PIXEL_UNPACK_BUFFER`, `GL_STATIC_DRAW`, `GL_DYNAMIC_DRAW`, `GL_STREAM_DRAW`, `GL_STREAM_READ`, `GL_FLOAT`, `GL_UNSIGNED_BYTE`, `GL_UNSIGNED_SHORT`, `GL_UNSIGNED_INT`, `GL_MAP_READ_BIT`, `GL_MAP_WRITE_BIT`, `GL_MAP_INVALIDATE_RANGE_BIT`, `GL_MAP_INVALIDATE_BUFFER_BIT`, `GL_SYNC_GPU_COMMANDS_COMPLETE`, `GL_SYNC_FLUSH_COMMANDS_BIT`, `GL_ALREADY_SIGNALED`, `GL_CONDITION_SATISFIED`, `GL_TIMEOUT_EXPIRED`, `GL_WAIT_FAILED`, `GL_BUFFER_SIZE`.
+Constants: `GL_ARRAY_BUFFER`, `GL_ELEMENT_ARRAY_BUFFER`, `GL_PIXEL_PACK_BUFFER`, `GL_PIXEL_UNPACK_BUFFER`, `GL_UNIFORM_BUFFER`, `GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT`, `GL_MAX_UNIFORM_BLOCK_SIZE`, `GL_STATIC_DRAW`, `GL_DYNAMIC_DRAW`, `GL_STREAM_DRAW`, `GL_STREAM_READ`, `GL_FLOAT`, `GL_UNSIGNED_BYTE`, `GL_UNSIGNED_SHORT`, `GL_UNSIGNED_INT`, `GL_MAP_READ_BIT`, `GL_MAP_WRITE_BIT`, `GL_MAP_INVALIDATE_RANGE_BIT`, `GL_MAP_INVALIDATE_BUFFER_BIT`, `GL_SYNC_GPU_COMMANDS_COMPLETE`, `GL_SYNC_FLUSH_COMMANDS_BIT`, `GL_ALREADY_SIGNALED`, `GL_CONDITION_SATISFIED`, `GL_TIMEOUT_EXPIRED`, `GL_WAIT_FAILED`, `GL_BUFFER_SIZE`.
 
 # Textures and framebuffers
 
 `glGenTextures`, `glBindTexture`, `glTexImage2D`, `glTexSubImage2D`, `glTexParameteri`, `glActiveTexture`, `glDeleteTextures`, `glPixelStorei`, `glGenFramebuffers`, `glBindFramebuffer`, `glFramebufferTexture2D`, `glCheckFramebufferStatus`, `glDeleteFramebuffers`, `glGenRenderbuffers`, `glBindRenderbuffer`, `glRenderbufferStorage`, `glRenderbufferStorageMultisample`, `glFramebufferRenderbuffer`, `glDeleteRenderbuffers`, `glBlitFramebuffer`, `glDrawBuffers`, `glReadBuffer`, `glReadPixels`.
 
-Constants: `GL_TEXTURE_2D`, `GL_TEXTURE0`, `GL_RGBA`, `GL_RGBA8`, `GL_RGB`, `GL_RED`, `GL_R8`, `GL_DEPTH24_STENCIL8`, `GL_TEXTURE_MIN_FILTER`, `GL_TEXTURE_MAG_FILTER`, `GL_TEXTURE_WRAP_S`, `GL_TEXTURE_WRAP_T`, `GL_NEAREST`, `GL_LINEAR`, `GL_CLAMP_TO_EDGE`, `GL_UNPACK_ALIGNMENT`, `GL_UNPACK_ROW_LENGTH`, `GL_PACK_ALIGNMENT`, `GL_PACK_ROW_LENGTH`, `GL_UNPACK_SKIP_ROWS`, `GL_UNPACK_SKIP_PIXELS`, `GL_PACK_SKIP_ROWS`, `GL_PACK_SKIP_PIXELS`, `GL_FRAMEBUFFER`, `GL_READ_FRAMEBUFFER`, `GL_DRAW_FRAMEBUFFER`, `GL_RENDERBUFFER`, `GL_COLOR_ATTACHMENT0`, `GL_DEPTH_STENCIL_ATTACHMENT`, `GL_FRAMEBUFFER_COMPLETE`, `GL_COLOR_BUFFER_BIT`, `GL_DEPTH_BUFFER_BIT`, `GL_STENCIL_BUFFER_BIT`, `GL_PIXEL_PACK_BUFFER_BINDING`, `GL_DRAW_FRAMEBUFFER_BINDING`, `GL_READ_FRAMEBUFFER_BINDING`.
+Constants: `GL_TEXTURE_2D`, `GL_TEXTURE0`, `GL_RGBA`, `GL_RGBA8`, `GL_RGB`, `GL_RG`, `GL_RED`, `GL_RED_INTEGER`, `GL_R8`, `GL_R8UI`, `GL_R32UI`, `GL_RG32F`, `GL_RGBA32F`, `GL_DEPTH24_STENCIL8`, `GL_TEXTURE_MIN_FILTER`, `GL_TEXTURE_MAG_FILTER`, `GL_TEXTURE_WRAP_S`, `GL_TEXTURE_WRAP_T`, `GL_NEAREST`, `GL_LINEAR`, `GL_CLAMP_TO_EDGE`, `GL_UNPACK_ALIGNMENT`, `GL_UNPACK_ROW_LENGTH`, `GL_PACK_ALIGNMENT`, `GL_PACK_ROW_LENGTH`, `GL_UNPACK_SKIP_ROWS`, `GL_UNPACK_SKIP_PIXELS`, `GL_PACK_SKIP_ROWS`, `GL_PACK_SKIP_PIXELS`, `GL_FRAMEBUFFER`, `GL_READ_FRAMEBUFFER`, `GL_DRAW_FRAMEBUFFER`, `GL_RENDERBUFFER`, `GL_COLOR_ATTACHMENT0`, `GL_DEPTH_STENCIL_ATTACHMENT`, `GL_FRAMEBUFFER_COMPLETE`, `GL_COLOR_BUFFER_BIT`, `GL_DEPTH_BUFFER_BIT`, `GL_STENCIL_BUFFER_BIT`, `GL_PIXEL_PACK_BUFFER_BINDING`, `GL_DRAW_FRAMEBUFFER_BINDING`, `GL_READ_FRAMEBUFFER_BINDING`.
 
 # Draws
 

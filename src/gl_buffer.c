@@ -139,6 +139,22 @@ ZEND_FUNCTION(glBindBuffer)
 	glBindBuffer((GLenum) target, (GLuint) buffer);
 }
 
+ZEND_FUNCTION(glBindBufferRange)
+{
+	zend_long target, index, buffer, offset, size;
+
+	OPENGL_REQUIRE_CONTEXT();
+	ZEND_PARSE_PARAMETERS_START(5, 5)
+		Z_PARAM_LONG(target)
+		Z_PARAM_LONG(index)
+		Z_PARAM_LONG(buffer)
+		Z_PARAM_LONG(offset)
+		Z_PARAM_LONG(size)
+	ZEND_PARSE_PARAMETERS_END();
+
+	glBindBufferRange((GLenum) target, (GLuint) index, (GLuint) buffer, (GLintptr) offset, (GLsizeiptr) size);
+}
+
 ZEND_FUNCTION(glBufferData)
 {
 	zend_long target, size, address = 0, usage;
